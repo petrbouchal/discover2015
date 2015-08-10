@@ -1,0 +1,424 @@
+---
+title: `r ikurz`
+output: 
+  html_document: 
+    fig_caption: no
+    theme: null
+    toc: yes
+    css: custom.css
+---
+
+# `r ikurz `
+
+*Zpětná vazba, júlový turnus Discover*
+
+
+``` {r KnitrPrep, cache=FALSE,include=FALSE}
+library(knitr)
+library(Cairo)
+# set up graphing:
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
+# make relative references work - change this to project directory
+opts_knit$set(root.dir='~/github/experiments/d15eval/')
+
+CairoFonts(
+  regular="Gill Sans MT:style=Regular",
+  bold="Gill Sans MT:style=Bold",
+  italic="Gill Sans MT:style=Italic",
+  bolditalic="Gill Sans MT:style=Bold Italic,BoldItalic",
+  symbol="Symbol"
+)
+
+```
+
+``` {r Load tools library from anywhere, include=FALSE, echo=FALSE}
+# install.packages(devtools)
+# library(devtools)
+# install_github('pbtools','petrbouchal')
+library(pbtools)
+```
+
+```{r LoadDataKurzy, include=F, echo=F,fig.cap=""}
+kurz_long <- kurzy_long %>% filter(kurz==ikurz)
+kurzy3 <- kurz_long %>% 
+  filter(variable %in% dnyvtydnu,
+         !is.na(kurz)) %>% 
+  mutate(value=as.numeric(value),
+         variable = droplevels(variable),
+         variable = factor(variable, levels=dnyvtydnu))
+
+kurzy4 <- kurzy3 %>% 
+  group_by(variable, kurz, kurzslot) %>% 
+  summarise(value = mean(value, na.rm = T))
+
+kurzy5 <- kurzy3 %>% 
+  group_by(variable, kurz) %>% 
+  summarise(value = mean(value, na.rm = T))
+
+kurzy5$kurzslot <- "oba"
+kurzyplot <- rbind(kurzy4, kurzy5)
+
+kurzplot <- kurzyplot %>% 
+  group_by(kurz, variable) %>% 
+  mutate(pocetslotu = n()-1)
+
+```
+
+```{r PrepTheme, echo=F, include=F,fig.cap=""}
+
+loadcustomthemes(fontfamily = "Gill Sans MT")
+theme_discover_bykurz <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
+                               panel.grid.major=element_line(color="grey96", size=.3),
+                               strip.text = element_text(size=12, color="grey20"),
+                               panel.background = element_rect(fill="white"),
+                               axis.text.x = element_text(size=11),
+                               strip.background=element_rect(fill="white"),
+                               legend.key.width=unit(.3,"cm"))
+
+
+```
+
+
+## Hodnocení kurzu
+
+```{r CalcAve, echo=F, include=F}
+kurzplot <- if(mean(kurzplot$pocetslotu)==2) { kurzplot } else { kurzplot[kurzplot$kurzslot!="oba",] }
+print(kurzplot)
+```
+
+
+```{r}
+hodavg <- kurzplot %>% group_by(kurzslot) %>% summarise(prumer=mean(value))
+names(hodavg) <- c("Blok setkání","Průměrná známka")
+```
+
+Průměrná známka: `r knitr::kable(hodavg, digits=2)  `
+
+### Hodnocení po dnech
+
+```{r GrafHodnoceni, dev="CairoPNG",dpi=200, fig.height=4,fig.cap=""}
+ggplot(kurzplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
+  geom_line(size=1) +
+  geom_point(size=3, pch=19) +
+  scale_y_continuous(limits=c(1,3)) +
+  scale_colour_manual(values=c("A"="lightgoldenrod1","B"="aquamarine3","oba"="black")) +
+  geom_text(aes(label=formatC(value, digits=2, format="f"),
+                y=value+.2),
+            size=3, colour="grey40",fontface="bold",
+            data=kurzplot[kurzplot$kurzslot==unique(kurzplot$kurzslot)[length(unique(kurzplot$kurzslot))],]) +
+  theme_discover_bykurz
+
+```
+
+### Co se na kurzu líbilo 
+
+```{r KurzLibilo, results="asis"}
+
+cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzlibilo" & !is.na(kurz_long$value)]), sep="\n\n")
+```
+
+### Co na kurzu změnit
+
+```{r KurzZmenit, results="asis"}
+
+cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzzmenit" & !is.na(kurz_long$value)]), sep="\n\n")
+```
+
+
+## Hodnocení lektora
+
+```{r Lektor, dpi=200, dev="CairoPNG", fig.height=3, fig.cap=""}
+
+lektor <- kurz_long %>%
+  filter(grepl("kurzobsah_",.$variable), !is.na(kurz)) %>% 
+  mutate(variable = droplevels(variable)) %>% 
+  group_by(kurz, variable, value) %>% 
+  summarise(pocet = n())
+
+lektor_wide <- dcast(lektor, "... ~ value")
+
+lektor$variable <- plyr::revalue(lektor$variable,
+                                 c("kurzobsah_lekodbornik"="Byl lektor dostatečný odborník na tento kurz?",
+                                   "kurzobsah_lekpoutave"="Učil lektor poutavě?",
+                                   "kurzobsah_lekpripraveny"="Byl lektor dobře připravený na tento kurz?",
+                                   "kurzobsah_lekpristupny"="Byl lektor přístupný i mimo setkání kurzu?",
+                                   "kurzobsah_lekvysvet"="Vysvětloval lektor srozumitelně?",
+                                   "kurzobsah_lekzapoj"="Vytvořil ti lektor prostor zapojit se do dění v kurzu?",
+                                   "kurzobsah_prinos"="Byl kurz pro tebe celkově přínosný?",
+                                   "kurzobsah_problemzapojit"="Měl/a jsi problém zapojit se do dění v kurzu?"
+                                 ))
+negativnihodnoty <- c("Určitě ne", "Spíše ne")
+lektor2 <- lektor %>%  
+  mutate(share=pocet/sum(pocet),
+         share = ifelse(value %in% negativnihodnoty, -share, share),
+         share = ifelse(value=="Nevím", -share/2, share)) %>% 
+  filter(!is.na(variable))
+
+addthis <- lektor2[lektor2$value=="Nevím",]
+addthis$share <- -addthis$share
+lektor2 <- rbind(lektor2, addthis)
+
+lektor2 <- lektor2[!is.na(lektor2$variable),]
+lektor2$variable <- droplevels(lektor2$variable)
+
+lektor2$value <- ordered(lektor2$value)
+
+l_positive <- lektor2[lektor2$share>0,]
+l_negative <- lektor2[lektor2$share<0,]
+
+l_positive <- l_positive[!is.na(l_positive$variable),]
+l_negative <- l_negative[!is.na(l_negative$variable),]
+
+l_positive <- arrange(l_positive, value)
+l_negative <- arrange(l_negative, desc(value))
+
+ggplot() +
+  aes(fill=value, x=variable, y=share, group=kurz, order=value) +
+  geom_bar(stat="identity", position="stack", color="white",
+           data=l_positive) +
+  geom_bar(stat="identity", position="stack", color="white",
+           data=l_negative) +
+  # facet_wrap(~kurz, nrow = 6) + 
+  coord_flip() +
+  # scale_fill_brewer(palette = "RdBu") +
+  scale_fill_manual(values=c("Určitě ne"="firebrick3",
+                             "Spíše ne"="firebrick1",
+                             "Nevím"="grey96",
+                             "Spíše ano"="steelblue1",
+                             "Určitě ano"="steelblue3"),
+                    breaks=c("Určitě ne","Spíše ne","Nevím","Spíše ano",
+                             "Určitě ano")) +
+  scale_y_continuous(labels=percent) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=12))
+
+```
+
+### Komentáře k lektorovi 
+
+```{r KomentLektor, results="asis"}
+
+cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzlektorpoznamky" & !is.na(kurz_long$value)]), sep="\n\n")
+```
+
+## Náročnost kurzu
+
+### **Jak hodnotíš náročnost...**
+
+```{r Narocnost, dpi=200, dev="CairoPNG", fig.height=3,fig.cap=""}
+
+negativnihodnoty <- c("Velmi těžké","Spíše těžké")
+vhodne <- c("Vhodně náročné")
+
+narocnost <- kurzy_long %>% 
+  filter(grepl("narocnost",variable)) %>% 
+  group_by(kurz, variable, value) %>%
+  summarise(pocet=n()) %>% 
+  group_by(kurz, variable) %>% 
+  mutate(share=pocet/sum(pocet)) %>% 
+  mutate(share = ifelse(value %in% negativnihodnoty,-share, share),
+         share = ifelse(value %in% vhodne,-share/2, share)) %>%
+  filter(!is.na(value)) %>% 
+  filter(value!="Mého kurzu se netýká") %>% 
+  filter(!is.na(variable))
+
+narocnost$variable <- plyr::revalue(narocnost$variable,
+                                    c("kurznarocnost_narochod"="setkání kurzu",
+                                      "kurznarocnost_narocpracetu"="práce na letní škole",
+                                      "kurznarocnost_narocmater"="materiálů před Discover"
+                                    ))
+
+addthis <- narocnost[narocnost$value=="Vhodně náročné",]
+addthis$share <- -addthis$share
+narocnost <- rbind(narocnost, addthis)
+
+narocnost$value <- as.factor(narocnost$value)
+
+l_positive <- narocnost[narocnost$share>0,]
+l_negative <- narocnost[narocnost$share<0,]
+
+l_positive <- l_positive[!is.na(l_positive$variable),]
+l_negative <- l_negative[!is.na(l_negative$variable),]
+
+l_positive <- filter(l_positive, kurz==ikurz)
+l_negative <- filter(l_negative, kurz==ikurz)
+
+l_positive$value <- ordered(l_positive$value, levels=levels(l_positive$value)[c(6,2,4,3,5,1)])
+l_negative$value <- ordered(l_negative$value, levels=levels(l_negative$value)[c(6,2,4,3,5,1)])
+
+l_positive <- arrange(l_positive, value)
+l_negative <- arrange(l_negative, value)
+
+ggplot() +
+  aes(fill=value, x=variable, y=share, group=kurz) +
+  geom_bar(stat="identity", position="stack", color="white",
+           data=l_positive) +
+  geom_bar(stat="identity", position="stack", color="white",
+           data=l_negative) +
+  # facet_wrap(~kurz, nrow = 6) + 
+  coord_flip() +
+  # scale_fill_brewer(palette = "RdBu") +
+  scale_fill_manual(values=c("Velmi těžké"="firebrick3",
+                             "Spíše těžké"="firebrick1",
+                             "Vhodně náročné"="grey96",
+                             "Spíše lehké"="steelblue1",
+                             "Velmi lehké"="steelblue3",
+                             "Nevím"="grey80"),
+                    breaks=c("Velmi těžké","Spíše těžké","Vhodně náročné",
+                             "Spíše lehké","Velmi lehké","Nevím")) +
+  scale_y_continuous(labels=percent) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=12))
+
+```
+
+## Didaktika
+
+### Jak lektor učí a měl by to změnit?
+
+```{r JakUci, dev="CairoPNG", dpi=200, fig.height=4.5,fig.cap=""}
+dida <- kurzy_long %>% 
+  filter(grepl("jakuci",variable), !is.na(value), !is.na(kurz)) %>% 
+  group_by(kurz, variable, value) %>%
+  summarise(pocet=n()) %>% 
+  group_by(kurz, variable) %>% 
+  mutate(share=pocet/sum(pocet))
+
+dida$value <- as.factor(dida$value)
+# levels(dida$value)
+dida$value <- factor(dida$value, levels(dida$value)[c(2,1,4,3)])
+dida <- arrange(dida, desc(value))
+
+plot1 <- ggplot(dida[dida$kurz==ikurz,],
+                aes(value, share, fill=variable, order=value, group=kurz)) +
+  geom_area(stat="identity", fill="lightgoldenrod1") +
+  geom_point(stat="identity", colour="lightgoldenrod1", size=2) +
+  coord_flip() +
+  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
+  scale_y_continuous(labels=percent) +
+  ggtitle("Co nejlépe vystihuje,\njak lektor učí?") +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.minor.x=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=10),legend.position="none")
+
+dida <- kurzy_long %>% 
+  filter(grepl("kurzsamvsInteraktiv",variable), !is.na(value), !is.na(kurz)) %>% 
+  group_by(kurz, variable, value) %>%
+  summarise(pocet=n()) %>% 
+  group_by(kurz, variable) %>% 
+  mutate(share=pocet/sum(pocet))
+
+dida$value <- as.factor(dida$value)
+# levels(dida$value)
+dida$value <- factor(dida$value, levels(dida$value)[c(3,2,5,4,1)])
+dida <- arrange(dida, desc(value))
+
+plot2 <- ggplot(dida[dida$kurz==ikurz,],
+                aes(value, share, fill=variable, order=value, group=kurz)) +
+  geom_area(stat="identity", fill="aquamarine3") +
+  geom_point(stat="identity", colour="aquamarine3", size=2) +
+  coord_flip() +
+  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
+  scale_y_continuous(labels=percent) +
+  ggtitle("Přednášel lektor sám,\nnebo učil interaktivně?") +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.minor.x=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=10),legend.position="none")
+
+dida <- kurzy_long %>% 
+  filter(grepl("kurzucitjinak",variable), !is.na(value), !is.na(kurz)) %>% 
+  group_by(kurz, variable, value) %>%
+  summarise(pocet=n()) %>% 
+  group_by(kurz, variable) %>% 
+  mutate(share=pocet/sum(pocet))
+
+dida$value <- as.factor(dida$value)
+# levels(dida$value)
+dida$value <- factor(dida$value, levels(dida$value)[c(6,4,3,5,2,1)])
+dida <- arrange(dida, desc(value))
+
+plot3 <- ggplot(dida[dida$kurz==ikurz,],
+                aes(value, share, fill=variable, order=value, group=kurz)) +
+  geom_area(stat="identity", fill="firebrick1") +
+  geom_point(stat="identity", colour="firebrick1", size=2) +
+  coord_flip() +
+  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
+  scale_y_continuous(labels=percent) +
+  ggtitle("Měl by lektor \nučit jinak?") +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.minor.x=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=10),legend.position="none")
+
+library(gridExtra)
+grid.arrange(plot1,plot2,plot3, nrow=1)
+```
+
+### Jak se studentům nejlépe učí?
+
+```{r dev="CairoPNG", dpi=200, fig.height=2.5,fig.cap=""}
+dida <- kurzy_long %>% 
+  filter(grepl("kurzjaknejlepepraco",variable), !is.na(value), !is.na(kurz)) %>% 
+  group_by(kurz, variable, value) %>%
+  summarise(pocet=n()) %>% 
+  group_by(kurz, variable) %>% 
+  mutate(share=pocet/sum(pocet))
+
+dida$value <- as.factor(dida$value)
+# levels(dida$value)
+dida <- arrange(dida, desc(value))
+
+plot1 <- ggplot(dida[dida$kurz==ikurz,],
+                aes(value, share, fill=variable, order=value, group=kurz)) +
+  geom_bar(stat="identity", fill="hotpink1") +
+  coord_flip() +
+  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
+  scale_y_continuous(labels=percent) +
+  ggtitle("Jak se ti na kurzu nejlépe pracovalo?") +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.minor.x=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=10),legend.position="none")
+
+dida <- kurzy_long %>% 
+  filter(grepl("kurzjaknejuci",variable), !is.na(value), !is.na(kurz)) %>% 
+  group_by(kurz, variable, value) %>%
+  summarise(pocet=n()) %>% 
+  group_by(kurz, variable) %>% 
+  mutate(share=pocet/sum(pocet))
+
+dida$value <- as.factor(dida$value)
+# levels(dida$value)
+dida$value <- factor(dida$value, levels(dida$value)[c(4, 3, 2, 1, 5)])
+dida <- arrange(dida, desc(value))
+
+plot2 <- ggplot(dida[dida$kurz==ikurz,],
+                aes(value, share, fill=variable, order=value, group=kurz)) +
+  geom_bar(stat="identity", fill="turquoise1") +
+  coord_flip() +
+  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
+  scale_y_continuous(labels=percent) +
+  ggtitle("Jak se ti na kurzu nejlépe učí?") +
+  theme_discover_bykurz + theme(panel.grid.major.y=element_blank(),
+                                panel.grid.minor.x=element_blank(),
+                                panel.grid.major.x=element_line(),
+                                axis.text.y=element_text(size=10),legend.position="none")
+
+library(gridExtra)
+grid.arrange(plot1,plot2, nrow=1)
+```
+
+## Ovlivnil tě kurz nějak?
+
+**Pokud ano, jak? Pokud ne, proč ne?**
+
+```{r KurzOvlivnil, results="asis"}
+
+cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzovlivnil" & !is.na(kurz_long$value)]), sep="\n\n")
+```

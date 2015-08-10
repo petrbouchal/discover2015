@@ -1,0 +1,46 @@
+---
+title: "Discover 2015: kurzy souhrnně"
+output:
+  html_document:
+    css: custom.css
+    fig_height: 8
+    fig_width: 8
+---
+
+```{r Prep, echo=F, include=F}
+
+library(knitr)
+library(Cairo)
+# set up graphing:
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE, fig.width = 8,
+               fig.height = 8, dpi=100)
+# make relative references work - change this to project directory
+opts_knit$set(root.dir='~/github/experiments/d15eval/')
+
+CairoFonts(
+  regular="Gill Sans MT:style=Regular",
+  bold="Gill Sans MT:style=Bold",
+  italic="Gill Sans MT:style=Italic",
+  bolditalic="Gill Sans MT:style=Bold Italic,BoldItalic",
+  symbol="Symbol"
+)
+
+setwd("~/github/experiments/d15eval/")
+source("./d15eval_setup.R")
+setwd("~/github/experiments/d15eval/")
+source("./d15eval_kurzy_setup.R")
+
+```
+
+# Ovlivnili jsme účastníky?
+
+## Obecně
+
+```{r PoDnech, echo=F, dev="CairoPNG",dev.cap="",dpi=100}
+
+```
+
+## VŠ
+
+# Co by vzkázali budoucím účastníkům?
+
