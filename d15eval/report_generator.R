@@ -1,3 +1,5 @@
+setwd("~/github/discover2015/d15eval/")
+
 # Fix css handling
 
 options(rstudio.markdownToHTML = 
@@ -7,11 +9,15 @@ options(rstudio.markdownToHTML =
           }
 )
 
-knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "kurzy")
-knitr::knit2html("d15eval_program.Rmd", stylesheet="custom.css", output="program")
+knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "discoverfeedback/kurzy")
+knitr::knit2html("d15eval_program.Rmd", stylesheet="custom.css", output="discoverfeedback/program")
+knitr::knit2html("index.Rmd", stylesheet="custom.css", output="discoverfeedback/index")
+
+# knitr::knit2pdf("d15eval_program.Rmd", output="discoverfeedback/program")
+# knitr::knit2pdf("index.Rmd", output="discoverfeedback/index")
 
 rmd.convert <- function(fname, output=c('latex', 'word', 'html', "pdf"), outputfile=fname){
-  ## Thanks to Robert Musk for helpful additions to make this run better on Windows
+## Thanks to Robert Musk for helpful additions to make this run better on Windows
   
   require(knitr)
   require(tools)
@@ -53,7 +59,7 @@ rmd.convert <- function(fname, output=c('latex', 'word', 'html', "pdf"), outputf
     mess <- paste('pandoc -f markdown -o', shQuote(newname), "tmp-outputfile.md")
     system(mess)
     cat("The PDF file is", file.path(thedir, newname), "\n")
-    mess <- paste('rm tmp-outputfile.md')
+    # mess <- paste('rm tmp-outputfile.md')
     system(mess)
   }
   
@@ -70,6 +76,7 @@ rmd.convert <- function(fname, output=c('latex', 'word', 'html', "pdf"), outputf
   
 }
 
+setwd("~/github/discover2015/d15eval/")
 rmd.convert("d15eval_kurzy.Rmd","word",
             outputfile=paste0('./reporty_kurzy/report_kurzy', '.docx'))
 rmd.convert("d15eval_program.Rmd","word",

@@ -1,0 +1,63 @@
+---
+title: "Zpětná vazba Discover 2015"
+output: html_document
+---
+
+![](http://discover.sda.sk/wp-content/uploads/2013/02/farebne-k%C3%B3pia.png)
+
+-------
+
+Zpětná vazba Discover 2015
+===============
+
+----------
+
+```{r Prep, echo=F, include=F}
+
+setwd("~/github/discover2015/d15eval/")
+source("./d15eval_setup.R")
+setwd("~/github/discover2015/d15eval/")
+source("./d15eval_kurzy_setup.R")
+
+loadcustomthemes(fontfamily = "Gill Sans MT")
+theme_discover_multi <- theme(panel.grid.minor=element_line(color="grey96", size=.25),
+                        panel.grid.major=element_line(color="white", size=.5),
+                        strip.text = element_text(size=9, color="grey20", hjust=0.1),
+                        panel.background = element_rect(fill="grey96"),
+                        axis.text.x = element_text(size=10),
+                        strip.background=element_rect(fill="grey96"),
+                        plot.title=element_text(size=10, lineheight=0.5, hjust=0),
+                        legend.key.width=unit(.3,"cm"))
+
+theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
+                        panel.grid.major=element_line(color="grey96", size=.3),
+                        strip.text = element_text(size=12, color="grey20"),
+                        panel.background = element_rect(fill="white"),
+                        axis.text.x = element_text(size=11),
+                        strip.background=element_rect(fill="white"),
+                        legend.key.width=unit(.3,"cm"))
+
+```
+
+# Zpětná vazba na kurzy
+
+## Jednotlivé kurzy
+
+```{r echo=F, results="asis"}
+for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz)]))){
+  cat(paste0("- <a href=\"reporty_kurzy/report_", ikurz,".html\">",ikurz,"</a>",
+             "  <a href=\"reporty_kurzy/report_", ikurz,".docx\"> (word)</a><br />"),sep="\n")
+}
+```
+
+## Srovnání
+
+- [Kurzy](kurzy.html)
+
+# Zpětná vazba na program
+
+*coming soon*
+
+# Dopad Discover
+
+*coming soon*

@@ -13,7 +13,7 @@ if(whatplatform()=="win") {
   loc <- "~/Documents/Work/Discover/Discover 2015/Evaluace/data_final/"
   }
 
-
+source("./crosstab.r")
 
 ## Load data using LimeSurvey script ######
 
@@ -40,3 +40,23 @@ data <- data[data$id!=11,] # remove line for second entry
 table(is.na(data[,1]))
 table(is.na(data[,151]))
 table(is.na(data[,153]))
+
+# Load styles
+
+loadcustomthemes(fontfamily = "Gill Sans MT")
+theme_discover_multi <- theme(panel.grid.minor=element_line(color="grey96", size=.25),
+                              panel.grid.major=element_line(color="white", size=.5),
+                              strip.text = element_text(size=9, color="grey20", hjust=0.1),
+                              panel.background = element_rect(fill="grey96"),
+                              axis.text.x = element_text(size=10),
+                              strip.background=element_rect(fill="grey96"),
+                              plot.title=element_text(size=10, lineheight=0.5, hjust=0),
+                              legend.key.width=unit(.3,"cm"))
+
+theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
+                        panel.grid.major=element_line(color="grey96", size=.3),
+                        strip.text = element_text(size=12, color="grey20"),
+                        panel.background = element_rect(fill="white"),
+                        axis.text.x = element_text(size=11),
+                        strip.background=element_rect(fill="white"),
+                        legend.key.width=unit(.3,"cm"))

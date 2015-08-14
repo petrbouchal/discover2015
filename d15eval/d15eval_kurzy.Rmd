@@ -1,15 +1,19 @@
 ---
-title: 'Discover 2015: kurzy souhrnně'
+title: 'Discover 2015 júl: srovnání kurzů'
 output:
   html_document:
+    css: custom.css
     fig_height: 8
     fig_width: 8
-    fig_caption: no
-    theme: null
+    number_sections: no
     toc: yes
-    css: custom.css
-  pdf_document: default
+    toc_depth: 1
 ---
+
+Discover 2015 júl: srovnání kurzů
+==============
+
+----------
 
 ```{r Prep, echo=F, include=F}
 
@@ -18,7 +22,7 @@ library(Cairo)
 # set up graphing:
 opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
 # make relative references work - change this to project directory
-opts_knit$set(root.dir='~/github/experiments/d15eval/')
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
 
 CairoFonts(
   regular="Gill Sans MT:style=Regular",
@@ -28,9 +32,9 @@ CairoFonts(
   symbol="Symbol"
 )
 
-setwd("~/github/experiments/d15eval/")
+setwd("~/github/discover2015/d15eval/")
 source("./d15eval_setup.R")
-setwd("~/github/experiments/d15eval/")
+setwd("~/github/discover2015/d15eval/")
 source("./d15eval_kurzy_setup.R")
 
 kurzy3 <- kurzy_long %>% 
@@ -40,32 +44,10 @@ kurzy3 <- kurzy_long %>%
          variable = droplevels(variable),
          variable = factor(variable, levels=dnyvtydnu))
 
-loadcustomthemes(fontfamily = "Gill Sans MT")
-theme_discover_multi <- theme(panel.grid.minor=element_line(color="grey96", size=.25),
-                        panel.grid.major=element_line(color="white", size=.5),
-                        strip.text = element_text(size=9, color="grey20", hjust=0.1),
-                        panel.background = element_rect(fill="grey96"),
-                        axis.text.x = element_text(size=10),
-                        strip.background=element_rect(fill="grey96"),
-                        plot.title=element_text(size=10, lineheight=0.5, hjust=0),
-                        legend.key.width=unit(.3,"cm"))
-
-theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
-                        panel.grid.major=element_line(color="grey96", size=.3),
-                        strip.text = element_text(size=12, color="grey20"),
-                        panel.background = element_rect(fill="white"),
-                        axis.text.x = element_text(size=11),
-                        strip.background=element_rect(fill="white"),
-                        legend.key.width=unit(.3,"cm"))
-
 ```
 
-Zpětná vazba Discover 2015 júl: srovnání kurzů
-==================
 
-----------
-
-Ke každému kurzu je na Google Drive k dispozici samostatný soubor s detailními výsledky včetně slovní zpětné vazby.
+Ke každému kurzu je [k dispozici samostatný soubor](index.html) s detailními výsledky včetně slovní zpětné vazby.
 
 # Hodnocení kurzů
 
@@ -89,7 +71,7 @@ ggplot(kurzyplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
   geom_line(size=1) +
   geom_point(size=3, pch=19) +
   facet_wrap(~ kurz, ncol=4) + 
-  scale_y_continuous(limits=c(1,3)) +
+  scale_y_continuous(limits=c(1,3.5)) +
   scale_colour_manual(values=c("lightgoldenrod1","aquamarine3","black")) +
   geom_text(aes(label=formatC(value, digits=2, format="f"),
                 y=value+.2),
@@ -402,9 +384,21 @@ ggplot(dida,
 
 # Bonus: jak udělat skvělý kurz
 
+Jak daleko vpravo je tečka, o tolik zhoršoval daný faktor průměrnou známku v kurzu.
+
+Tj. pokud učíte ve druhém bloku, čekejte o 0.19 stupně lepší známku.
+
+Dny se srovnávají se čtvrtkem, tj. v pondělí čekejte o 0.18 stupně horší známku než ve čtvrtek.
+
+Kurzy se srovnávají s bioetikou, tj. politologie byla hodnocena o 0.56 stupně hůř než bioetika, a to i po odstínění vlivu ostatních faktorů (např. věku účastníků, bloku, ve kterém se kurz učil, atd.)
+
+Kluci hodnotí hůř, ale opakovaní účastnící (poprveNe) nehodnotí přísněji než nováčci; ani starší účastníci nehodnotí hůř nebo líp než mladší.
+
+Pokud se vodorovná čárka nepřekrývá se svislou tečkovanou čarou, je efekt statisticky významný.
+
 ```{r SkvelyKurz, dev="CairoPNG", dpi=200, fig.cap="", fig.height=7, fig.retina=2, results="hide"}
 
-setwd("~/github/experiments/d15eval/")
+setwd("~/github/discover2015/d15eval/")
 velikost <- read.csv("velikostkurzu.csv")
 velikost <- melt(velikost, id.vars="kurz")
 velikost <- plyr::rename(velikost,c("variable"="kurzslot", "value"="velikost")) 
@@ -412,7 +406,7 @@ velikost <- plyr::rename(velikost,c("variable"="kurzslot", "value"="velikost"))
 hod <- filter(kurzy_long, variable %in% dnyvtydnu)
 hod$value <- as.numeric(hod$value)
 
-model <- lm(value ~ variable + rocnik + pohlavi + kurzslot + kurz, data = hod)
+model <- lm(value ~ variable + vek + pohlavi + kurzslot + kurz + poprve, data = hod)
 # summary(model)
 
 library(sjPlot)

@@ -1,9 +1,9 @@
 # source: http://stackoverflow.com/questions/15396755/using-loops-with-knitr-to-produce-multiple-pdf-reports-need-a-little-help-to
   # Load data
 
-setwd("~/github/experiments/d15eval/")
+setwd("~/github/discover2015/d15eval/")
 source("./d15eval_setup.R")
-setwd("~/github/experiments/d15eval/")
+setwd("~/github/discover2015/d15eval/")
 source("./d15eval_kurzy_setup.R")
 
 # Prepare data
@@ -86,7 +86,7 @@ options(rstudio.markdownToHTML =
 
 for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz)]))){
   knit2html("kurzreport_template.Rmd",
-            output=paste0('./reporty_kurzy/report_', ikurz, '.html'),
+            output=paste0('discoverfeedback/reporty_kurzy/report_', ikurz, '.html'),
             stylesheet="custom.css")
   rmd.convert("kurzreport_template.Rmd","word",
               outputfile=paste0('./reporty_kurzy/report_', ikurz, '.docx'))

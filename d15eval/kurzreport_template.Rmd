@@ -19,7 +19,7 @@ library(Cairo)
 # set up graphing:
 opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
 # make relative references work - change this to project directory
-opts_knit$set(root.dir='~/github/experiments/d15eval/')
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
 
 CairoFonts(
   regular="Gill Sans MT:style=Regular",
@@ -100,7 +100,7 @@ Průměrná známka: `r knitr::kable(hodavg, digits=2)  `
 ggplot(kurzplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
   geom_line(size=1) +
   geom_point(size=3, pch=19) +
-  scale_y_continuous(limits=c(1,3)) +
+  scale_y_continuous(limits=c(1,3.5)) +
   scale_colour_manual(values=c("A"="lightgoldenrod1","B"="aquamarine3","oba"="black")) +
   geom_text(aes(label=formatC(value, digits=2, format="f"),
                 y=value+.2),
