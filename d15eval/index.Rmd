@@ -37,9 +37,18 @@ theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
                         strip.background=element_rect(fill="white"),
                         legend.key.width=unit(.3,"cm"))
 
+# Fix css handling
+
+options(rstudio.markdownToHTML = 
+          function(inputFile, outputFile) {      
+            require(markdown)
+            markdownToHTML(inputFile, outputFile, stylesheet='custom.css')   
+          }
+)
+
 ```
 
-# Zpětná vazba na kurzy
+# Kurzy
 
 ## Jednotlivé kurzy
 
@@ -54,9 +63,27 @@ for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz)]))){
 
 - [Kurzy](kurzy.html)
 
-# Zpětná vazba na program
+```{r generateKurzyComp, echo=F, include=F}
+knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "discoverfeedback/kurzy")
+```
+
+# Program: odpolední a večerní workshopy, volný čas
+
+*zatím jen základní info k workshopům, další informace coming soon*
+
+- [Workshopy a týmy](workshopy.html)
+
+```{r generateWorkshopy, echo=F, include=F}
+knitr::knit2html("d15eval_workshopy.Rmd", stylesheet="custom.css", output="discoverfeedback/workshopy")
+```
+
+# Program a organizace: rozložení dne, komunikace, organizace
 
 *coming soon*
+
+```{r generateProgram, echo=F, include=F}
+# knitr::knit2html("d15eval_program.Rmd", stylesheet="custom.css", output="discoverfeedback/program")
+```
 
 # Dopad Discover
 

@@ -1,20 +1,6 @@
-setwd("~/github/discover2015/d15eval/")
-
-# Fix css handling
-
-options(rstudio.markdownToHTML = 
-          function(inputFile, outputFile) {      
-            require(markdown)
-            markdownToHTML(inputFile, outputFile, stylesheet='custom.css')   
-          }
-)
-
-knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "discoverfeedback/kurzy")
-knitr::knit2html("d15eval_program.Rmd", stylesheet="custom.css", output="discoverfeedback/program")
-knitr::knit2html("index.Rmd", stylesheet="custom.css", output="discoverfeedback/index")
+knitr::knit2html("index.Rmd", output="discoverfeedback/index")
 
 # knitr::knit2pdf("d15eval_program.Rmd", output="discoverfeedback/program")
-# knitr::knit2pdf("index.Rmd", output="discoverfeedback/index")
 
 rmd.convert <- function(fname, output=c('latex', 'word', 'html', "pdf"), outputfile=fname){
 ## Thanks to Robert Musk for helpful additions to make this run better on Windows

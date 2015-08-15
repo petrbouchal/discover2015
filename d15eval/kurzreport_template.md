@@ -10,7 +10,7 @@ output:
 
 # Migrace
 
-*Zpětná vazba, júlový turnus Discover*
+[*Zpětná vazba, júlový turnus Discover*](../index.html)
 
 
 

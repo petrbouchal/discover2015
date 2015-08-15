@@ -1,45 +1,51 @@
 ---
-title: 'Discover 2015: workshopy a program'
+title: 'Discover 2015 júl: workshopy a program'
 output:
-  pdf_document:
-    toc: yes
   html_document:
     css: custom.css
     fig_height: 8
     fig_width: 8
-    number_sections: yes
+    number_sections: no
     toc: yes
+    toc_depth: 1
 ---
 
-Zpětná vazba Discover 2015 júl: workshopy a program
-==================
-
+Discover 2015 júl: workshopy, týmy, prefekti
+==============
 ----------
 
-
-
-## Odpolední workshopy
-
-
-
-### Nejlepší
-
-<img src="figure/wsOdpo-1.png" title="" alt="" width="1400" />
-
-### Hodnocení
+*[Zpět na rozcestník zpětné vazby](index.html)*
 
 
 
 
-## Týmové workshopy
+# Odpolední workshopy
 
-### Hodnocení
+## Který byl nejlepší?
 
-#### **Byly týmové workshopy zajímavé?**
+<img src="figure/wsOdpoNej-1.png" title="" alt="" width="1400" />
+
+## Proč?
+
+*coming soon*
+
+## Hodnocení
+
+Nejlépe hodnocené workshopy jsou nahoře. Známky jako ve škole.
+
+<img src="figure/wsOdpoHodno-1.png" title="plot of chunk wsOdpoHodno" alt="plot of chunk wsOdpoHodno" width="1400" />
+
+----
+
+# Týmové workshopy
+
+## Hodnocení
+
+### **Byly týmové workshopy zajímavé?**
 
 <img src="figure/wsTymHodn-1.png" title="" alt="" width="1400" />
 
-#### **Hodnocení týmových workshopů podle předchozí účasti na Discover**
+### **Hodnocení týmových workshopů podle předchozí účasti na Discover**
 
 
 
@@ -50,10 +56,10 @@ Zpětná vazba Discover 2015 júl: workshopy a program
 <tr><td style="text-align:left">NA</td><td>3.25</td><td>3</td></tr>
 <tr><td colspan="3" style="border-bottom: 1px solid black"></td></tr></table>
 
-#### Proč ano, proč ne?
+### Proč ano, proč ne?
 
 
-#### *Komentáře těch, kdo hodnotili spíše pozitivně*
+### *Komentáře těch, kdo hodnotili spíše pozitivně*
 
 * Boli zaujímavé tým, že som zistila názory ľudí v mojom tíme a mohli sme debatovať o tom, ale asi by som ich dala menej.
 * Prefekt (Mojmir) kladol veľmi dobré otázky a vedel priniesť do debaty kontroverziu, nad ktorou bolo zaujímavé rozmýšlať.
@@ -105,7 +111,7 @@ Zpětná vazba Discover 2015 júl: workshopy a program
 * Podla mna bolo velmi dobre ked sa k nam Papi pridal pri jednom workshope pretoze to dava tej diskusii novy rozmer a mali by byvat minimalne 2 lektori pri diskusiach. Vela ludom v nasej skupine Honza svojimi motyvacnymi speechmi pomohol na seba a na spolocnost pozerat z inej perspektivy. 
 * pretoze vdaka diskusiii s prefektom a nasimi rovesnikmi sme sa mohli zamysliet aj nad nazormi inych
 
-#### *Komentáře těch, kdo hodnotili spíše negativně*
+### *Komentáře těch, kdo hodnotili spíše negativně*
 
 * Debaty nebyli moc produktivní a přišlo mi že neměly nadefinované hranice a určitý směr.
 * Přišlo mi to trochu nucené a bylo mi líto, že si nemůžeme workshop číslo 2 volit  - oproti minulému roku tedy byl menší výběr workshopů.
@@ -126,24 +132,18 @@ Zpětná vazba Discover 2015 júl: workshopy a program
 
 Naopak mě ubíjelo vyhýbání se "šedým zónám". Co se týče např. malých zločinů, byla by fajn diskuze o tom, co je fajn a co ne. 
 
-### Dopad
+## Dopad týmových workshopů
 
-#### Změnil se tvůj pohled na některé z témat?
-
-
-```
-## Pearson's chi-square test was used to test whether the distribution of wsTymovePohled differed across groups.
-```
+### Změnil se tvůj pohled na některé z témat?
 
 
-<table style="text-align:center"><tr><td colspan="4" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Variable</td><td>wsTymovePohled, n (%)</td><td>Ano</td><td>Ne</td></tr>
-<tr><td style="text-align:left">Overall (n = 92)</td><td></td><td>58 (63.0)</td><td>34 (37.0)</td></tr>
-<tr><td style="text-align:left">Na Discover nejméně podruhé (n = 24)</td><td></td><td>10 (41.7)</td><td>14 (58.3)</td></tr>
-<tr><td style="text-align:left">Na Discover poprvé (n = 68)</td><td></td><td>48 (70.6)</td><td>20 (29.4)</td></tr>
-<tr><td style="text-align:left">P</td><td>0.02</td><td></td><td></td></tr>
+<table style="text-align:center"><tr><td colspan="4" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>Nezměnil</td><td>Změnil</td><td>Celkem</td></tr>
+<tr><td colspan="4" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Na Discoveru nejméně podruhé</td><td>14</td><td>10</td><td>24</td></tr>
+<tr><td style="text-align:left">Na Discoveru poprvé</td><td>20</td><td>48</td><td>68</td></tr>
+<tr><td style="text-align:left">Celkem</td><td>34</td><td>58</td><td>92</td></tr>
 <tr><td colspan="4" style="border-bottom: 1px solid black"></td></tr></table>
 
-#### *Proč se pohled změnil:*
+### *Proč se pohled změnil:*
 
 * Politická korektnost - tento pojem jsem před Discoverem neznala.
 * Nejvíce mě oslovil první workshop o drobných zločinech. Hlavně fakt, jak hodně jich všichni děláme.
@@ -191,7 +191,7 @@ Naopak mě ubíjelo vyhýbání se "šedým zónám". Co se týče např. malýc
 * Pomohlo mi to pozerat sa na socialne slabsich z ineho uhla pohladu. Napriklad ze nemusia byt chudobny len preto lebo su lenivy ale ze to moze byt sposobene tym ze v mladosti nemali ani moznost dostat sa vyssie. 
 * aj ano, aj nie
 
-#### *Proč se pohled nezměnil:*
+### *Proč se pohled nezměnil:*
 
 * Už jsem měl vydobytý a debatovaný názor na tyto témata před Discoverem
 * Záleží na daném tématu. V tomto opravdu nevím. 
@@ -218,7 +218,7 @@ Naopak mě ubíjelo vyhýbání se "šedým zónám". Co se týče např. malýc
 * Protože si stále myslím, že přecházet na červenou není zločin, pokud tím nikoho neohrozím. Na druhou stranu zajímavé je poslechnout si názor ostatních. 
 * Bohužel příliš povrchní, časté vyhýbání se grey zones.
 
-### Máme týmové workshopy změnit? Pokud ano, jak?
+## Máme týmové workshopy změnit? Pokud ano, jak?
 
 
 <table style="text-align:center"><tr><td colspan="4" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>Neměnit</td><td>Změnit</td><td>Celkem</td></tr>
@@ -229,7 +229,7 @@ Naopak mě ubíjelo vyhýbání se "šedým zónám". Co se týče např. malýc
 
 Tedy: častěji by týmové workshopy měnili ti, kdo už Discover zažili.
 
-#### *Co změnit:*
+### *Co změnit:*
 
 * Zkrátit nebo úplně zrušit. Možná by mohli být více formou přednášek a debatě o nich než začátek z ničeho.
 * Omezila bych jejich počet.
@@ -278,7 +278,7 @@ Tedy: častěji by týmové workshopy měnili ti, kdo už Discover zažili.
 * Méně otázek a více času na prodiskutování jednotlivé otázky.
 * tak o jeden menej a namiest toho normalne workshopy
 
-#### *Proč nic neměnit:*
+### *Proč nic neměnit:*
 
 * Líbili se mi a byl jsem s nimi spokojen.
 * Více kontroverzní témata... Všichni se shodneme, že zločiny ať malé či velké jsou špatně a přesto je děláme
@@ -286,28 +286,34 @@ Tedy: častěji by týmové workshopy měnili ti, kdo už Discover zažili.
 * Podla mna množstvo. A možno aj iný výber tém.
 * Myslim ze bol dostatocny priestor na diskusiu co bolo super a vsetci sme mohli zdielat svoje nazory. 
 
-## Prefekti
+----
 
-### Hodnocení role
+# Prefekti
 
-## Večerní (karierní) workshopy
+*coming soon*
 
-### Účast
+## Hodnocení role
 
-### Hodnocení
+*coming soon*
 
-### Který byl nejlepší?
+----
+# Večerní (kariérní) workshopy
 
-## Večerní program
+## Který byl nejlepší?
 
+<img src="figure/wsVecerNej-1.png" title="" alt="" width="1400" />
 
+- workshop o cestování bez peněz byl účastnický (Tomáš Rábek); pár lidí ho spontánně uvádělo i u odpoledních workshopů (!)
+- dvě účastnice nebyly ani na jednom večerním workshopu
 
-# Program obecně
+## Proč?
 
+*coming soon*
 
+## Hodnocení
 
-## Komunikace
+Nejlépe hodnocené workshopy jsou v grafu nahoře.
 
-### Před Discover
+Bohužel jsem udělal chybu v dotazníku: sobotní workshopy neměly kolonku na hodnocení. Všem dotčeným se omlouvám! Nějaký odhad jejich popularity se dá udělat srovnáním s grafem nejoblíbenějších workshopů o kousek výš.
 
-### Brožurka
+<img src="figure/wsVecerHodn-1.png" title="" alt="" width="1400" />

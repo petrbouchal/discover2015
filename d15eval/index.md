@@ -14,7 +14,7 @@ Zpětná vazba Discover 2015
 
 
 
-# Zpětná vazba na kurzy
+# Kurzy
 
 ## Jednotlivé kurzy
 
@@ -40,9 +40,21 @@ Zpětná vazba Discover 2015
 
 - [Kurzy](kurzy.html)
 
-# Zpětná vazba na program
+
+
+# Program: odpolední a večerní workshopy, volný čas
+
+*zatím jen základní info k workshopům, další informace coming soon*
+
+- [Workshopy a týmy](workshopy.html)
+
+
+
+# Program a organizace: rozložení dne, komunikace, organizace
 
 *coming soon*
+
+
 
 # Dopad Discover
 

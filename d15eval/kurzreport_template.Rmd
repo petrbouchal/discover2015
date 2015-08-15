@@ -10,7 +10,7 @@ output:
 
 # `r ikurz `
 
-*Zpětná vazba, júlový turnus Discover*
+[*Zpětná vazba, júlový turnus Discover*](../index.html)
 
 
 ``` {r KnitrPrep, cache=FALSE,include=FALSE}

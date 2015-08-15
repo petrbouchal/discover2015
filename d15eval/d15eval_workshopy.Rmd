@@ -1,0 +1,365 @@
+---
+title: 'Discover 2015 júl: workshopy a program'
+output:
+  html_document:
+    css: custom.css
+    fig_height: 8
+    fig_width: 8
+    number_sections: no
+    toc: yes
+    toc_depth: 1
+---
+
+Discover 2015 júl: workshopy, týmy, prefekti
+==============
+----------
+
+*[Zpět na rozcestník zpětné vazby](index.html)*
+
+
+```{r PrepWorkshopy, echo=F, include=F}
+
+library(knitr)
+library(Cairo)
+# set up graphing:
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
+# make relative references work - change this to project directory
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
+
+CairoFonts(
+  regular="Gill Sans MT:style=Regular",
+  bold="Gill Sans MT:style=Bold",
+  italic="Gill Sans MT:style=Italic",
+  bolditalic="Gill Sans MT:style=Bold Italic,BoldItalic",
+  symbol="Symbol"
+)
+
+setwd("~/github/discover2015/d15eval/")
+source("./d15eval_setup.R")
+setwd("~/github/discover2015/d15eval/")
+
+```
+
+# Odpolední workshopy
+
+## Který byl nejlepší?
+
+```{r wsOdpoNej, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.height=5, fig.retina=2}
+
+wsonej <- data %>% 
+  select(contains("wsOdpoNej"),vek,id,pohlavi)
+
+wsonejsum <- data %>% 
+  select(contains("wsOdpoNej"),vek,id,pohlavi) %>% 
+  group_by(wsOdpoNejlepsi) %>% 
+  summarise(pocet=n()) %>% 
+  arrange(pocet)
+
+ggplot(wsonejsum[!is.na(wsonejsum$wsOdpoNejlepsi),], aes(x=reorder(wsOdpoNejlepsi, pocet),y=pocet)) +
+  geom_bar(stat="identity", fill="darkgrey") +
+  scale_y_continuous(limits=c(0,12), expand=c(0,0)) +
+  coord_flip() + theme_discover + theme(panel.grid.major.y=element_blank(),
+                                        panel.grid.major.x=element_line(colour="grey92"),
+                                        panel.grid.minor.x=element_blank())
+
+
+```
+
+## Proč?
+
+*coming soon*
+
+## Hodnocení
+
+Nejlépe hodnocené workshopy jsou nahoře. Známky jako ve škole.
+
+```{r wsOdpoHodno, echo=F, dpi=200, dev="CairoPNG", fig.retina=2, fig.height=6}
+library(RColorBrewer)
+
+wso <- data %>% 
+  select(contains("wsOdpo"),-contains("Time"),-contains("lepsi"), id, vek, rocnik, pohlavi,
+         poprve=minulerocniky_prvno)
+
+names(wso) <- sub("Ktery","_nazev",names(wso))
+names(wso) <- sub("_nazev_other","_other",names(wso))
+names(wso) <- sub("Hodn","_hodn",names(wso))
+
+wso <- wso %>% 
+  melt(id.vars=c("id","pohlavi","vek","rocnik","poprve")) %>% 
+  separate(variable, c("den","variable"), sep="_") %>% 
+  spread(variable,value) %>% 
+  mutate(den=gsub("wsOdpo","",den),
+         den=tolower(den)) %>% 
+  filter(!is.na(nazev)) %>% 
+  group_by(nazev) %>% 
+  mutate(znamka=mean(as.numeric(hodn), na.rm=T), pocet=n(),
+         minzn=min(hodn, na.rm=T), maxzn=max(hodn, na.rm=T)) %>% 
+  group_by(nazev, hodn) %>% 
+  summarise(znamka=mean(znamka,na.rm=T), pocetznamka=n())
+
+wso$nazev <- factor(wso$nazev, levels=wso$nazev[order(-wso$znamka)])
+wso <- arrange(wso, hodn)
+
+ggplot(wso, aes(y=as.numeric(pocetznamka), x=nazev, fill=hodn, group=nazev)) +
+  geom_bar(stat="identity", position="stack") +
+  scale_fill_manual(values = rev(brewer.pal(5,"RdYlGn"))) +
+  coord_flip() + theme_discover + theme(panel.grid.major.y=element_blank(),
+                                        panel.grid.major.x=element_line(colour="grey92"),
+                                        panel.grid.minor.x=element_line(colour="grey96"))
+
+
+```
+
+----
+
+# Týmové workshopy
+
+## Hodnocení
+
+### **Byly týmové workshopy zajímavé?**
+
+```{r wsTymHodn, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=3, results="asis"}
+
+tws <- data %>% 
+  select(contains("wsTymove"),id,pohlavi,vek,rocnik, poprve=minulerocniky_prvno) %>% 
+  melt(id.vars=c("id","pohlavi","vek","rocnik","poprve")) 
+
+twszaj <- tws %>% 
+  filter(grepl("Q", .$variable)) %>% 
+  group_by(variable, value) %>% 
+  summarise(pocet=n())
+
+twszaj$value <- as.factor(twszaj$value)
+# levels(twszaj$value)
+twszaj$value <- factor(twszaj$value, levels(twszaj$value)[c(5,3,1,2,4)])
+# levels(twszaj$value)
+twszaj <- arrange(twszaj, value) 
+
+twszaj$variable <- plyr::revalue(twszaj$variable,
+                                 c("wsTymoveZajimave_SQ004"="Co můžu dělat",
+                                   "wsTymoveZajimave_SQ003"="Vtipy nebo ubližování slovem",
+                                   "wsTymoveZajimave_SQ002"="Moje místo ve společnosti",
+                                   "wsTymoveZajimave_SQ001"="Malé zločiny"
+                                   ))
+
+twszaj$variable <- factor(twszaj$variable, levels(twszaj$variable)[c(4,3,2,1)])
+
+ggplot(twszaj, aes(group=variable, x=variable, y=pocet, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(twszaj$value))) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  scale_y_continuous(labels=percent) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.y=element_text(size=12))
+```
+
+### **Hodnocení týmových workshopů podle předchozí účasti na Discover**
+
+```{r wsTymHodnProc, echo=F, include=F}
+tws <- data %>% 
+  select(contains("wsTymove"),id,pohlavi,vek,rocnik,-contains("Time"),
+         poprve=minulerocniky_prvno) %>% 
+  melt(id.vars=c("wsTymovePohled", "wsTymoveZmenit", "wsTymovePohled_comment",
+                 "wsTymoveZmenit_comment", "id", "pohlavi", "vek", "rocnik",
+                 "wsTymoveZajimaveProc","poprve")) %>% 
+  mutate(ciselne=ifelse(value=="Určitě ano","1",
+                        ifelse(value=="Spíše ano","2",
+                               ifelse(value=="Nevím","3",
+                                      ifelse(value=="Spíše ne","4",
+                                             ifelse(value=="Určitě ne","5",value))))),
+         poprve=ifelse(poprve=="Ano","Na Discover poprvé","Na Discover nejméně podruhé")) %>%
+  group_by(id, poprve, wsTymovePohled, wsTymoveZmenit, wsTymoveZajimaveProc,
+           wsTymovePohled_comment, wsTymoveZajimaveProc, wsTymoveZmenit_comment) %>% 
+  summarise(meancis=mean(as.numeric(ciselne), na.rm=T)) %>% 
+  mutate(positive=meancis<3)
+summary(tws$positive)
+```
+
+```{r wsTymHodnPodleUcasti, results="asis", warnings=F}
+suppressPackageStartupMessages(library(stargazer))
+
+hodnpodleucasti <- group_by(tws, poprve) %>%
+  summarise(hodn=mean(meancis, na.rm=T), pocet=n())
+names(hodnpodleucasti) <- c("Předchozí účast",
+                            "Hodnocení (1=Určitě zajímavé, 5=Určitě nezajímavé)",
+                            "Počet účastníků")
+# kable(hodnpodleucasti, digits=2)
+
+stargazer(as.matrix(format(hodnpodleucasti, quote=FALSE,
+                           justify="right",digits=3), rownames.force = FALSE),
+          type="html", dep.var.labels.include = FALSE, digits=2)
+```
+
+### Proč ano, proč ne?
+
+
+### *Komentáře těch, kdo hodnotili spíše pozitivně*
+
+```{r wsTymPozit, results="asis"}
+
+cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(data$wsTymoveZajimaveProc) & tws$positive])),sep="\n")
+
+```
+
+### *Komentáře těch, kdo hodnotili spíše negativně*
+
+```{r wsTymNegat, results="asis"}
+
+cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(data$wsTymoveZajimaveProc) & !tws$positive])),sep="\n")
+```
+
+## Dopad týmových workshopů
+
+### Změnil se tvůj pohled na některé z témat?
+
+```{r wsTymovePohled, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=12, results="asis"}
+
+wsTymovePohled <- select(data, pohled=wsTymovePohled, poprve=minulerocniky_prvno) %>% 
+  mutate(pohled=ifelse(pohled=="Ano","Změnil","Nezměnil"),
+         poprve=ifelse(poprve=="Ano","Na Discoveru poprvé","Na Discoveru nejméně podruhé"))
+
+library(stargazer)
+ttt <- table(wsTymovePohled)
+ttt <- addmargins(ttt)
+row.names(ttt)[3] <- "Celkem"
+colnames(ttt)[3] <- "Celkem"
+f <- t(ttt)
+stargazer(format(f, quote=FALSE, justify="right"), type="html", dep.var.labels.include = FALSE)
+```
+
+### *Proč se pohled změnil:*
+
+```{r wsTymoveProcZmenil, results="asis"}
+cat(paste0("* ", data$wsTymovePohled_comment[!is.na(data$wsTymovePohled_comment) & data$wsTymovePohled=="Ano"]),sep="\n")
+```
+
+### *Proč se pohled nezměnil:*
+
+```{r wsTymoveProcNezmenil, results="asis"}
+cat(paste0("* ", data$wsTymovePohled_comment[!is.na(data$wsTymovePohled_comment) & data$wsTymovePohled=="Ne"]),sep="\n")
+```
+
+## Máme týmové workshopy změnit? Pokud ano, jak?
+
+```{r wsTymZmenit, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=12, results="asis"}
+
+wsTymoveZmenit <- select(data, zmenit=wsTymoveZmenit, poprve=minulerocniky_prvno) %>% 
+  mutate(zmenit=ifelse(zmenit=="Ano","Změnit","Neměnit"),
+         poprve=ifelse(poprve=="Ano","Na Discoveru poprvé","Na Discoveru nejméně podruhé"))
+
+library(stargazer)
+ttt <- table(wsTymoveZmenit)
+ttt <- addmargins(ttt)
+row.names(ttt)[3] <- "Celkem"
+colnames(ttt)[3] <- "Celkem"
+f <- t(ttt)
+stargazer(format(f, quote=FALSE, justify="right"), type="html", dep.var.labels.include = FALSE)
+```
+
+Tedy: častěji by týmové workshopy měnili ti, kdo už Discover zažili.
+
+### *Co změnit:*
+
+```{r wsTymZmenitAno, results="asis"}
+cat(paste0("* ", unique(data$wsTymoveZmenit_comment[!is.na(data$wsTymoveZmenit_comment) & data$wsTymoveZmenit=="Ano"])),sep="\n")
+```
+
+### *Proč nic neměnit:*
+
+```{r wsTymZmenitNe, results="asis"}
+cat(paste0("* ", unique(data$wsTymoveZmenit_comment[!is.na(data$wsTymoveZmenit_comment) & data$wsTymoveZmenit=="Ne"])),sep="\n")
+```
+
+----
+
+# Prefekti
+
+*coming soon*
+
+## Hodnocení role
+
+*coming soon*
+
+----
+# Večerní (kariérní) workshopy
+
+## Který byl nejlepší?
+
+```{r wsVecerNej, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=5, results="asis"}
+
+wsvnej <- data %>% 
+  select(contains("wsVecerNej"),vek,id,pohlavi)
+
+wsvnejsum <- data %>% 
+  select(contains("wsVecernej"),contains("weVecerNej"),vek,id,pohlavi,
+         poprve=minulerocniky_prvno) %>% 
+  group_by(wsVecernejlepsi) %>% 
+  summarise(pocet=n()) %>% 
+  arrange(pocet)
+
+ggplot(wsvnejsum[!is.na(wsvnejsum$wsVecernejlepsi),],
+       aes(x=reorder(wsVecernejlepsi, pocet),y=pocet)) +
+  geom_bar(stat="identity", fill="darkblue") +
+  scale_y_continuous(limits=c(0,30), expand=c(0,0)) +
+  coord_flip() + theme_discover + 
+  theme(panel.grid.major.y=element_blank(),
+        panel.grid.major.x=element_line(colour="grey92"),
+        panel.grid.minor.x=element_blank())
+
+```
+
+- workshop o cestování bez peněz byl účastnický (Tomáš Rábek); pár lidí ho spontánně uvádělo i u odpoledních workshopů (!)
+- dvě účastnice nebyly ani na jednom večerním workshopu
+
+## Proč?
+
+*coming soon*
+
+## Hodnocení
+
+Nejlépe hodnocené workshopy jsou v grafu nahoře.
+
+Bohužel jsem udělal chybu v dotazníku: sobotní workshopy neměly kolonku na hodnocení. Všem dotčeným se omlouvám! Nějaký odhad jejich popularity se dá udělat srovnáním s grafem nejoblíbenějších workshopů o kousek výš.
+
+```{r wsVecerHodn, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=6, results="asis"}
+
+wsv <- data %>% 
+  select(contains("wsVecer"),-contains("Time"),-contains("lepsi"), id, vek, rocnik, pohlavi,
+         poprve=minulerocniky_prvno)
+
+names(wsv) <- sub("Ktery","_nazev",names(wsv))
+names(wsv) <- sub("_nazev_other","_other",names(wsv))
+names(wsv) <- sub("Hodn","_hodn",names(wsv))
+
+wsv <- wsv %>% 
+  melt(id.vars=c("id","pohlavi","vek","rocnik","poprve")) %>% 
+  separate(variable, c("den","variable"), sep="_") %>% 
+  spread(variable,value) %>% 
+  mutate(den=gsub("wsVecer","",den),
+         den=tolower(den)) %>% 
+  filter(!is.na(nazev)) %>% 
+  filter(nazev!="Žádný") %>% 
+  group_by(nazev) %>% 
+  mutate(znamka=mean(as.numeric(hodn), na.rm=T), pocet=n(),
+         minzn=min(hodn, na.rm=T), maxzn=max(hodn, na.rm=T),
+         hodn=ifelse(is.na(hodn),"0",hodn)) %>% 
+  group_by(nazev, hodn) %>% 
+  summarise(pocetznamka=n(), znamka=mean(znamka))
+
+wsv$nazev <- factor(wsv$nazev, levels=wsv$nazev[order(-wsv$znamka)])
+wsv <- arrange(wsv, hodn)
+
+ggplot() +
+  geom_bar(data=wsv, aes(pocetznamka, x=nazev, fill=hodn, group=nazev),
+           stat="identity", position="stack") +
+  scale_fill_manual(values = c("darkgrey",rev(brewer.pal(5,"RdYlGn")))) +
+  coord_flip() + theme_discover +
+  theme(panel.grid.major.y=element_blank(),
+        panel.grid.major.x=element_line(colour="grey92"),
+        panel.grid.minor.x=element_line(colour="grey96"))
+
+
+```

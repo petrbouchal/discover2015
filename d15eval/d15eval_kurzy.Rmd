@@ -15,7 +15,7 @@ Discover 2015 júl: srovnání kurzů
 
 ----------
 
-```{r Prep, echo=F, include=F}
+```{r PrepKurzy, echo=F, include=F}
 
 library(knitr)
 library(Cairo)
