@@ -41,6 +41,11 @@ table(is.na(data[,1]))
 table(is.na(data[,151]))
 table(is.na(data[,153]))
 
+# rename misnamed variables for consistency
+
+names(data) <- gsub("workshopvecer","wsVecer",names(data))
+names(data) <- gsub("ovlivlila","ovlivnila",names(data))
+
 # Load styles
 
 loadcustomthemes(fontfamily = "Gill Sans MT")
