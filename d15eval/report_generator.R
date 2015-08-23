@@ -1,3 +1,4 @@
+# generuje všechny odkazované reporty kromě jednotlivých kurzů (těch je moc)
 knitr::knit2html("index.Rmd", output="discoverfeedback/index")
 
 # knitr::knit2pdf("d15eval_program.Rmd", output="discoverfeedback/program")
