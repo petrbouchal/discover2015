@@ -53,6 +53,7 @@ options(rstudio.markdownToHTML =
 ## Jednotlivé kurzy
 
 ```{r echo=F, results="asis"}
+# generuje jen odkazy; odkazované reporty je třeba vygenerovat zvlášť v souboru kurzreport_generator.R
 for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz)]))){
   cat(paste0("- <a href=\"reporty_kurzy/report_", ikurz,".html\">",ikurz,"</a>",
              "  <a href=\"reporty_kurzy/report_", ikurz,".docx\"> (word)</a><br />"),sep="\n")
