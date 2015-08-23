@@ -7,7 +7,7 @@ output:
     fig_width: 8
 ---
 
-```{r Prep, echo=F, include=F}
+```{r PrepDopad, echo=F, include=F}
 
 library(knitr)
 library(Cairo)
@@ -15,7 +15,7 @@ library(Cairo)
 opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE, fig.width = 8,
                fig.height = 8, dpi=100)
 # make relative references work - change this to project directory
-opts_knit$set(root.dir='~/github/experiments/d15eval/')
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
 
 CairoFonts(
   regular="Gill Sans MT:style=Regular",
@@ -25,10 +25,9 @@ CairoFonts(
   symbol="Symbol"
 )
 
-setwd("~/github/experiments/d15eval/")
+setwd("~/github/discover2015/d15eval/")
 source("./d15eval_setup.R")
-setwd("~/github/experiments/d15eval/")
-source("./d15eval_kurzy_setup.R")
+setwd("~/github/discover2015/d15eval/")
 
 ```
 
@@ -36,8 +35,10 @@ source("./d15eval_kurzy_setup.R")
 
 ## Obecně
 
-```{r PoDnech, echo=F, dev="CairoPNG",dev.cap="",dpi=100}
-
+```{r Ovlivnili, echo=F, dev="CairoPNG",dev.cap="",dpi=100}
+table(df1$ovlivnilaucastplany)
+table(df1$ovlivnilaucastplany, df1$pohlavi)
+table(df1$ovlivnilaVS)
 ```
 
 ## VŠ
