@@ -23,7 +23,10 @@ Discover 2015 júl: workshopy, týmy, prefekti
 
 ## Který byl nejlepší?
 
-<img src="figure/wsOdpoNej-1.png" title="" alt="" width="1400" />
+
+
+<img src="figure/wsOdpoNej-1.png" title="" alt="" width="1600" />
+
 
 ## Proč?
 
@@ -33,7 +36,7 @@ Discover 2015 júl: workshopy, týmy, prefekti
 
 Nejlépe hodnocené workshopy jsou nahoře. Známky jako ve škole.
 
-<img src="figure/wsOdpoHodno-1.png" title="plot of chunk wsOdpoHodno" alt="plot of chunk wsOdpoHodno" width="1400" />
+<img src="figure/wsOdpoHodno-1.png" title="plot of chunk wsOdpoHodno" alt="plot of chunk wsOdpoHodno" width="1600" />
 
 ----
 
@@ -43,7 +46,7 @@ Nejlépe hodnocené workshopy jsou nahoře. Známky jako ve škole.
 
 ### **Byly týmové workshopy zajímavé?**
 
-<img src="figure/wsTymHodn-1.png" title="" alt="" width="1400" />
+<img src="figure/wsTymHodn-1.png" title="" alt="" width="1600" />
 
 ### **Hodnocení týmových workshopů podle předchozí účasti na Discover**
 
@@ -301,10 +304,14 @@ Tedy: častěji by týmové workshopy měnili ti, kdo už Discover zažili.
 
 ## Který byl nejlepší?
 
-<img src="figure/wsVecerNej-1.png" title="" alt="" width="1400" />
+<img src="figure/wsVecerNej-1.png" title="" alt="" width="1600" />
 
-- workshop o cestování bez peněz byl účastnický (Tomáš Rábek); pár lidí ho spontánně uvádělo i u odpoledních workshopů (!)
+- workshop o cestování bez peněz byl účastnický (Tomáš Rábek); pár lidí ho spontánně uvádělo i u odpoledních workshopů (!):
+  - "Nejvíce se mi líbil workshop o levném cestování, protože jde o můj velký koníček a proto oceňuji spoustu tipů do budoucna. Také mě překvapil profesionální a vtipný projev studenta."
+  - čtyří lidé ho omylem hodnotili mezi odpoledními workshopy: tři dali jedničku, jeden dvojku
 - dvě účastnice nebyly ani na jednom večerním workshopu
+- dva účastníci uvedli spontánně Práci v diplomacii jako nejlepší v kolonce na nejlepší odpolední workshop
+- v textových komentářích se objevily i pozitivní reakce na psaní esejů
 
 ## Proč?
 
@@ -316,4 +323,4 @@ Nejlépe hodnocené workshopy jsou v grafu nahoře.
 
 Bohužel jsem udělal chybu v dotazníku: sobotní workshopy neměly kolonku na hodnocení. Všem dotčeným se omlouvám! Nějaký odhad jejich popularity se dá udělat srovnáním s grafem nejoblíbenějších workshopů o kousek výš.
 
-<img src="figure/wsVecerHodn-1.png" title="" alt="" width="1400" />
+<img src="figure/wsVecerHodn-1.png" title="" alt="" width="1600" />

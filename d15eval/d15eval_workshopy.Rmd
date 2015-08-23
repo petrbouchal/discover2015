@@ -37,23 +37,35 @@ CairoFonts(
 setwd("~/github/discover2015/d15eval/")
 source("./d15eval_setup.R")
 setwd("~/github/discover2015/d15eval/")
-
 ```
 
 # Odpolední workshopy
 
 ## Který byl nejlepší?
 
+```{r wsOdpoNejJine, include=F, echo=F}
+
+wsonej <- df1 %>% 
+  select(contains("wsOdpoNej"),vek,id,pohlavi,-contains("Time"))
+
+# Co nám napsali ti, co vybrali "žádný" nebo nevybrali nic?
+
+wsonej[is.na(wsonej$wsOdpoNejlepsi) & !is.na(wsonej$wsOdpoNejlepsi_comment),2]
+wsonej$wsOdpoNejlepsi_comment[wsonej$wsOdpoNejlepsi=="Žádný" & !is.na(wsonej$wsOdpoNejlepsi_comment)]
+
+# Fill in where comment contains identifiable workshop reference
+wsonej$wsOdpoNejlepsi <- as.character(wsonej$wsOdpoNejlepsi)
+wsonej$wsOdpoNejlepsi[grepl("urnalist",wsonej$wsOdpoNejlepsi_comment,ignore.case = T)] <- "Žurnalistika"
+wsonej$wsOdpoNejlepsi[grepl("prvej",wsonej$wsOdpoNejlepsi_comment,ignore.case = T)] <- "Prvá pomoc"
+wsonej$wsOdpoNejlepsi <- as.factor(wsonej$wsOdpoNejlepsi)
+unique(wsonej$wsOdpoNejlepsi)
+```
+
 ```{r wsOdpoNej, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.height=5, fig.retina=2}
-
-wsonej <- data %>% 
-  select(contains("wsOdpoNej"),vek,id,pohlavi)
-
-wsonejsum <- data %>% 
-  select(contains("wsOdpoNej"),vek,id,pohlavi) %>% 
+wsonejsum <- wsonej %>% 
   group_by(wsOdpoNejlepsi) %>% 
   summarise(pocet=n()) %>% 
-  arrange(pocet)
+  arrange(pocet, desc(wsOdpoNejlepsi))
 
 ggplot(wsonejsum[!is.na(wsonejsum$wsOdpoNejlepsi),], aes(x=reorder(wsOdpoNejlepsi, pocet),y=pocet)) +
   geom_bar(stat="identity", fill="darkgrey") +
@@ -61,9 +73,8 @@ ggplot(wsonejsum[!is.na(wsonejsum$wsOdpoNejlepsi),], aes(x=reorder(wsOdpoNejleps
   coord_flip() + theme_discover + theme(panel.grid.major.y=element_blank(),
                                         panel.grid.major.x=element_line(colour="grey92"),
                                         panel.grid.minor.x=element_blank())
-
-
 ```
+
 
 ## Proč?
 
@@ -76,7 +87,7 @@ Nejlépe hodnocené workshopy jsou nahoře. Známky jako ve škole.
 ```{r wsOdpoHodno, echo=F, dpi=200, dev="CairoPNG", fig.retina=2, fig.height=6}
 library(RColorBrewer)
 
-wso <- data %>% 
+wso <- df1 %>% 
   select(contains("wsOdpo"),-contains("Time"),-contains("lepsi"), id, vek, rocnik, pohlavi,
          poprve=minulerocniky_prvno)
 
@@ -84,12 +95,31 @@ names(wso) <- sub("Ktery","_nazev",names(wso))
 names(wso) <- sub("_nazev_other","_other",names(wso))
 names(wso) <- sub("Hodn","_hodn",names(wso))
 
-wso <- wso %>% 
+wso0 <- wso %>% 
   melt(id.vars=c("id","pohlavi","vek","rocnik","poprve")) %>% 
   separate(variable, c("den","variable"), sep="_") %>% 
   spread(variable,value) %>% 
   mutate(den=gsub("wsOdpo","",den),
-         den=tolower(den)) %>% 
+         den=tolower(den))
+
+# look at all where "other" was filled in
+wso_other <- wso0 %>% filter(!is.na(other))
+
+# fill in those where "other" refers to a recognizable workshop
+
+wso0$nazev[grepl("ism",wso0$other,ignore.case = T)] <- "Radikalismus (host)"
+wso0$nazev[grepl("izm",wso0$other,ignore.case = T)] <- "Radikalismus (host)"
+wso0$nazev[grepl("naci",wso0$other,ignore.case = T)] <- "Radikalismus (host)"
+wso0$nazev[grepl("ebat",wso0$other,ignore.case = T)] <- "Debata (workshop)"
+wso0$nazev[grepl("alov",wso0$other,ignore.case = T)] <- "Malování na trička"
+wso0$nazev[grepl("Novin",wso0$other,ignore.case = T)] <- "Žurnalistika"
+wso0$nazev[grepl("Volby a ich prieskumy",wso0$other,ignore.case = T)] <- "Volby a voliči: páteř demokracie, nebo její Achillova pata?"
+wso0$nazev[grepl("štastie",wso0$other,ignore.case = T)] <- "Dá se štěstí koupit?"
+wso0$nazev[grepl("sociol",wso0$other,ignore.case = T)] <- "Sociologie lásky: koho milujeme a jaké to má dopady na společnost"
+
+# Summarise
+
+wso <- wso0 %>% 
   filter(!is.na(nazev)) %>% 
   group_by(nazev) %>% 
   mutate(znamka=mean(as.numeric(hodn), na.rm=T), pocet=n(),
@@ -120,7 +150,7 @@ ggplot(wso, aes(y=as.numeric(pocetznamka), x=nazev, fill=hodn, group=nazev)) +
 
 ```{r wsTymHodn, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=3, results="asis"}
 
-tws <- data %>% 
+tws <- df1 %>% 
   select(contains("wsTymove"),id,pohlavi,vek,rocnik, poprve=minulerocniky_prvno) %>% 
   melt(id.vars=c("id","pohlavi","vek","rocnik","poprve")) 
 
@@ -159,7 +189,7 @@ ggplot(twszaj, aes(group=variable, x=variable, y=pocet, fill=value,
 ### **Hodnocení týmových workshopů podle předchozí účasti na Discover**
 
 ```{r wsTymHodnProc, echo=F, include=F}
-tws <- data %>% 
+tws <- df1 %>% 
   select(contains("wsTymove"),id,pohlavi,vek,rocnik,-contains("Time"),
          poprve=minulerocniky_prvno) %>% 
   melt(id.vars=c("wsTymovePohled", "wsTymoveZmenit", "wsTymovePohled_comment",
@@ -200,7 +230,7 @@ stargazer(as.matrix(format(hodnpodleucasti, quote=FALSE,
 
 ```{r wsTymPozit, results="asis"}
 
-cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(data$wsTymoveZajimaveProc) & tws$positive])),sep="\n")
+cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(df1$wsTymoveZajimaveProc) & tws$positive])),sep="\n")
 
 ```
 
@@ -208,7 +238,7 @@ cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(data$wsTymoveZajimavePro
 
 ```{r wsTymNegat, results="asis"}
 
-cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(data$wsTymoveZajimaveProc) & !tws$positive])),sep="\n")
+cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(df1$wsTymoveZajimaveProc) & !tws$positive])),sep="\n")
 ```
 
 ## Dopad týmových workshopů
@@ -217,7 +247,7 @@ cat(paste0("* ", unique(tws$wsTymoveZajimaveProc[!is.na(data$wsTymoveZajimavePro
 
 ```{r wsTymovePohled, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=12, results="asis"}
 
-wsTymovePohled <- select(data, pohled=wsTymovePohled, poprve=minulerocniky_prvno) %>% 
+wsTymovePohled <- select(df1, pohled=wsTymovePohled, poprve=minulerocniky_prvno) %>% 
   mutate(pohled=ifelse(pohled=="Ano","Změnil","Nezměnil"),
          poprve=ifelse(poprve=="Ano","Na Discoveru poprvé","Na Discoveru nejméně podruhé"))
 
@@ -233,20 +263,20 @@ stargazer(format(f, quote=FALSE, justify="right"), type="html", dep.var.labels.i
 ### *Proč se pohled změnil:*
 
 ```{r wsTymoveProcZmenil, results="asis"}
-cat(paste0("* ", data$wsTymovePohled_comment[!is.na(data$wsTymovePohled_comment) & data$wsTymovePohled=="Ano"]),sep="\n")
+cat(paste0("* ", df1$wsTymovePohled_comment[!is.na(df1$wsTymovePohled_comment) & df1$wsTymovePohled=="Ano"]),sep="\n")
 ```
 
 ### *Proč se pohled nezměnil:*
 
 ```{r wsTymoveProcNezmenil, results="asis"}
-cat(paste0("* ", data$wsTymovePohled_comment[!is.na(data$wsTymovePohled_comment) & data$wsTymovePohled=="Ne"]),sep="\n")
+cat(paste0("* ", df1$wsTymovePohled_comment[!is.na(df1$wsTymovePohled_comment) & df1$wsTymovePohled=="Ne"]),sep="\n")
 ```
 
 ## Máme týmové workshopy změnit? Pokud ano, jak?
 
 ```{r wsTymZmenit, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=12, results="asis"}
 
-wsTymoveZmenit <- select(data, zmenit=wsTymoveZmenit, poprve=minulerocniky_prvno) %>% 
+wsTymoveZmenit <- select(df1, zmenit=wsTymoveZmenit, poprve=minulerocniky_prvno) %>% 
   mutate(zmenit=ifelse(zmenit=="Ano","Změnit","Neměnit"),
          poprve=ifelse(poprve=="Ano","Na Discoveru poprvé","Na Discoveru nejméně podruhé"))
 
@@ -264,13 +294,13 @@ Tedy: častěji by týmové workshopy měnili ti, kdo už Discover zažili.
 ### *Co změnit:*
 
 ```{r wsTymZmenitAno, results="asis"}
-cat(paste0("* ", unique(data$wsTymoveZmenit_comment[!is.na(data$wsTymoveZmenit_comment) & data$wsTymoveZmenit=="Ano"])),sep="\n")
+cat(paste0("* ", unique(df1$wsTymoveZmenit_comment[!is.na(df1$wsTymoveZmenit_comment) & df1$wsTymoveZmenit=="Ano"])),sep="\n")
 ```
 
 ### *Proč nic neměnit:*
 
 ```{r wsTymZmenitNe, results="asis"}
-cat(paste0("* ", unique(data$wsTymoveZmenit_comment[!is.na(data$wsTymoveZmenit_comment) & data$wsTymoveZmenit=="Ne"])),sep="\n")
+cat(paste0("* ", unique(df1$wsTymoveZmenit_comment[!is.na(df1$wsTymoveZmenit_comment) & df1$wsTymoveZmenit=="Ne"])),sep="\n")
 ```
 
 ----
@@ -290,10 +320,10 @@ cat(paste0("* ", unique(data$wsTymoveZmenit_comment[!is.na(data$wsTymoveZmenit_c
 
 ```{r wsVecerNej, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=5, results="asis"}
 
-wsvnej <- data %>% 
+wsvnej <- df1 %>% 
   select(contains("wsVecerNej"),vek,id,pohlavi)
 
-wsvnejsum <- data %>% 
+wsvnejsum <- df1 %>% 
   select(contains("wsVecernej"),contains("weVecerNej"),vek,id,pohlavi,
          poprve=minulerocniky_prvno) %>% 
   group_by(wsVecernejlepsi) %>% 
@@ -311,8 +341,12 @@ ggplot(wsvnejsum[!is.na(wsvnejsum$wsVecernejlepsi),],
 
 ```
 
-- workshop o cestování bez peněz byl účastnický (Tomáš Rábek); pár lidí ho spontánně uvádělo i u odpoledních workshopů (!)
+- workshop o cestování bez peněz byl účastnický (Tomáš Rábek); pár lidí ho spontánně uvádělo i u odpoledních workshopů (!):
+  - "Nejvíce se mi líbil workshop o levném cestování, protože jde o můj velký koníček a proto oceňuji spoustu tipů do budoucna. Také mě překvapil profesionální a vtipný projev studenta."
+  - čtyří lidé ho omylem hodnotili mezi odpoledními workshopy: tři dali jedničku, jeden dvojku
 - dvě účastnice nebyly ani na jednom večerním workshopu
+- dva účastníci uvedli spontánně Práci v diplomacii jako nejlepší v kolonce na nejlepší odpolední workshop
+- v textových komentářích se objevily i pozitivní reakce na psaní esejů
 
 ## Proč?
 
@@ -326,7 +360,7 @@ Bohužel jsem udělal chybu v dotazníku: sobotní workshopy neměly kolonku na 
 
 ```{r wsVecerHodn, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=6, results="asis"}
 
-wsv <- data %>% 
+wsv <- df1 %>% 
   select(contains("wsVecer"),-contains("Time"),-contains("lepsi"), id, vek, rocnik, pohlavi,
          poprve=minulerocniky_prvno)
 
@@ -334,12 +368,18 @@ names(wsv) <- sub("Ktery","_nazev",names(wsv))
 names(wsv) <- sub("_nazev_other","_other",names(wsv))
 names(wsv) <- sub("Hodn","_hodn",names(wsv))
 
-wsv <- wsv %>% 
+wsv0 <- wsv %>% 
   melt(id.vars=c("id","pohlavi","vek","rocnik","poprve")) %>% 
   separate(variable, c("den","variable"), sep="_") %>% 
   spread(variable,value) %>% 
   mutate(den=gsub("wsVecer","",den),
-         den=tolower(den)) %>% 
+         den=tolower(den))
+
+# Co vyplnili, kdyz vyplnili "jine?"
+wsv_other <- wsv0 %>% filter(is.na(nazev) & !is.na(other))
+# odpoved: nic moc
+
+wsv <- wsv0 %>% 
   filter(!is.na(nazev)) %>% 
   filter(nazev!="Žádný") %>% 
   group_by(nazev) %>% 
@@ -360,6 +400,5 @@ ggplot() +
   theme(panel.grid.major.y=element_blank(),
         panel.grid.major.x=element_line(colour="grey92"),
         panel.grid.minor.x=element_line(colour="grey96"))
-
 
 ```
