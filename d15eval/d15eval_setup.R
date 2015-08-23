@@ -13,9 +13,11 @@ if(whatplatform()=="win") {
   loc <- "~/Documents/Work/Discover/Discover 2015/Evaluace/data_final/"
   }
 
+## Load custom function - see inside script for source ####
+
 source("./crosstab.r")
 
-## Load data using LimeSurvey script ######
+## Load data using LimeSurvey script ####
 
 setwd(loc)
 getwd()
@@ -65,3 +67,11 @@ theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
                         axis.text.x = element_text(size=11),
                         strip.background=element_rect(fill="white"),
                         legend.key.width=unit(.3,"cm"))
+
+# rename data source to avoid name clashes
+df1 <- data
+rm(data)
+
+# mark turnus
+df1$turnus <- "Júl"
+df1$turnuscode <- 1

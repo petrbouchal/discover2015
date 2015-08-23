@@ -1,6 +1,6 @@
 ## Kurzy: select vars and reshape into long format
 
-kurzy <- data %>% 
+kurzy <- df1 %>% 
   select(starts_with("kurz"),pohlavi,rocnik,vek, -kurzyjakedalsi, id ,
          -contains("Time"), poprve=minulerocniky_prvno) %>%
   mutate(poprve=ifelse(poprve=="Ano","Ano","Ne")) %>% 
