@@ -406,7 +406,7 @@ velikost <- plyr::rename(velikost,c("variable"="kurzslot", "value"="velikost"))
 hod <- filter(kurzy_long, variable %in% dnyvtydnu)
 hod$value <- as.numeric(hod$value)
 
-model <- lm(value ~ variable + vek + pohlavi + kurzslot + kurz + poprve, data = hod)
+model <- lm(value ~ variable + vek + pohlavi + kurzslot + kurz + poprve + turnus, data = hod)
 # summary(model)
 
 library(sjPlot)
