@@ -105,7 +105,7 @@ wso0 <- wso %>%
 # look at all where "other" was filled in
 wso_other <- wso0 %>% filter(!is.na(other))
 
-# fill in those where "other" refers to a recognizable workshop
+# fill in those where "other" refers to a recognizable workshop (identified manually)
 
 wso0$nazev[grepl("ism",wso0$other,ignore.case = T)] <- "Radikalismus (host)"
 wso0$nazev[grepl("izm",wso0$other,ignore.case = T)] <- "Radikalismus (host)"
