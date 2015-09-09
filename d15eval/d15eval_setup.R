@@ -10,18 +10,21 @@ if(whatplatform()=="win") {
   # options(encoding = "UTF-8")
   } else {
   Sys.setlocale(category = "LC_ALL", locale = "cs_CZ.UTF-8")
-  loc <- "~/Documents/Work/Discover/Discover 2015/Evaluace/data_final/"
+  loc <- "~/Documents/Work/Discover/Discover 2015/Evaluace/"
   }
 
 ## Load custom function - see inside script for source ####
 
+setwd("~/github/discover2015/d15eval/")
 source("./crosstab.r")
 
 ## Load data using LimeSurvey script ####
 
 setwd(loc)
 getwd()
-source("survey_317642_R_syntax_file.R")
+
+## Júl: ID of survey = 317642
+source("./data_jul/survey_317642_R_syntax_file.R", chdir = T)
 
 # codebook here:
 # http://localhost/index.php/admin/expressions/sa/survey_logic_file/sid/317642
@@ -48,6 +51,74 @@ table(is.na(data[,153]))
 names(data) <- gsub("workshopvecer","wsVecer",names(data))
 names(data) <- gsub("ovlivlila","ovlivnila",names(data))
 
+# rename data source to avoid name clashes
+df1 <- data
+rm(data)
+
+# mark turnus
+df1$turnus <- factor("Júl")
+df1$turnuscode <- 1
+df1$surveycode <- factor("jul")
+
+# create unique id
+
+df1$uid <- paste0(df1$surveycode, "_", df1$id)
+
+#### August
+
+# ID of corrected survey: 155346
+setwd(loc)
+source("data_aug/survey_155346_R_syntax_file.R", chdir = T)
+
+names(data) <- gsub("workshopvecer","wsVecer",names(data))
+names(data) <- gsub("ovlivlila","ovlivnila",names(data))
+
+df2_1 <- data
+rm(data)
+
+df2_1$surveycode <- "aug_corrected"
+df2_1$uid <- paste0(df2_1$surveycode, "_", df2_1$id)
+
+# rename kurz2ktery to proper name
+names(df2_1) <- gsub("druhykurzoprava","kurz2ktery",names(df2_1))
+
+# ID of initial survey: 477889
+source("./data_aug/survey_477889_R_syntax_file.R", chdir = T)
+
+names(data) <- gsub("workshopvecer","wsVecer",names(data))
+names(data) <- gsub("ovlivlila","ovlivnila",names(data))
+
+df2_0 <- data
+rm(data)
+
+df2_0$surveycode <- factor("aug_error")
+df2_0$uid <- paste0(df2_0$surveycode, "_", df2_0$id)
+
+# both exported with default export settings - not sure if this is right
+
+# check that coding of binary answers is consistent across surveys
+
+# checkbox
+table(df1$minulerocniky_prvno)
+table(df2_1$minulerocniky_prvno)
+table(df2_0$minulerocniky_prvno)
+
+# Yes/No
+table(df1$zapojeni)
+table(df2_1$zapojeni)
+table(df2_0$zapojeni)
+
+# merge both August surveys
+
+df2 <- rbind(df2_0, df2_1)
+
+df2$turnus <- factor("August")
+df2$turnuscode <- 2
+
+# Merge August and July
+
+df <- plyr::rbind.fill(df1,df2)
+
 # Load styles
 
 loadcustomthemes(fontfamily = "Gill Sans MT")
@@ -68,10 +139,3 @@ theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
                         strip.background=element_rect(fill="white"),
                         legend.key.width=unit(.3,"cm"))
 
-# rename data source to avoid name clashes
-df1 <- data
-rm(data)
-
-# mark turnus
-df1$turnus <- "Júl"
-df1$turnuscode <- 1
