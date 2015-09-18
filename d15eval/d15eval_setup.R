@@ -94,19 +94,38 @@ rm(data)
 df2_0$surveycode <- factor("aug_error")
 df2_0$uid <- paste0(df2_0$surveycode, "_", df2_0$id)
 
+kurzywrong <- c("Bioetika","Fyzika a kosmologie","Klinická neuroveda",
+                "Trestná justícia","Experimentální ekonomie")
+kurzyright <- c("Analytická filozófia","Kvantová fyzika","Neuroveda",
+                "Právo a morálka","Ekonomie")
+
+fixkurzy <- function(data, kurzywrong, kurzyright) {
+  if (length(kurzywrong)!=length(kurzyright)) {
+    stop("List of wrong and right names are of different lengths")
+  } else {
+      for(i in 1:length(kurzyright)) {
+        data[data==kurzywrong[i]] <- kurzyright[i]
+      }
+  }
+  return(data)
+}
+ 
+df2_0$kurz1ktery <- fixkurzy(df2_0$kurz1ktery, kurzywrong, kurzyright)
+df2_0$kurz2ktery <- fixkurzy(df2_0$kurz2ktery, kurzywrong, kurzyright)
+
 # both exported with default export settings - not sure if this is right
 
 # check that coding of binary answers is consistent across surveys
 
 # checkbox
-table(df1$minulerocniky_prvno)
-table(df2_1$minulerocniky_prvno)
-table(df2_0$minulerocniky_prvno)
+table(df1$minulerocniky_prvno, useNA="always")
+table(df2_1$minulerocniky_prvno, useNA="always")
+table(df2_0$minulerocniky_prvno, useNA="always")
 
 # Yes/No
-table(df1$zapojeni)
-table(df2_1$zapojeni)
-table(df2_0$zapojeni)
+table(df1$zapojeni, useNA="always")
+table(df2_1$zapojeni, useNA="always")
+table(df2_0$zapojeni, useNA="always")
 
 # merge both August surveys
 

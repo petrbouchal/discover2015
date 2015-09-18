@@ -51,33 +51,52 @@ Ke každému kurzu je [k dispozici samostatný soubor](index.html) s detailními
 
 # Hodnocení kurzů
 
-```{r PoDnech, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+Hodnocení je jako ve škole: 1 nejlepší, 5 nejhorší.
+
+A a B jsou sloty, kdy se učilo. A je 9-10:30, B je 11-12:30.
+
+```{r PoDnechPrep, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
 kurzy4 <- kurzy3 %>% 
-  group_by(variable, kurz, kurzslot) %>% 
+  group_by(variable, kurz, kurzslot, turnus) %>% 
   summarise(value = mean(value, na.rm = T))
 
 kurzy5 <- kurzy3 %>% 
-  group_by(variable, kurz) %>% 
+  group_by(variable, kurz, turnus) %>% 
   summarise(value = mean(value, na.rm = T))
 
 kurzy5$kurzslot <- "oba"
 kurzyplot <- rbind(kurzy4, kurzy5)
 
 kurzyplot <- kurzyplot %>% 
-  group_by(kurz, variable) %>% 
+  group_by(kurz, variable, turnus) %>% 
   mutate(pocetslotu = n()-1)
 
-ggplot(kurzyplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
-  geom_line(size=1) +
-  geom_point(size=3, pch=19) +
-  facet_wrap(~ kurz, ncol=4) + 
-  scale_y_continuous(limits=c(1,3.5)) +
-  scale_colour_manual(values=c("lightgoldenrod1","aquamarine3","black")) +
-  geom_text(aes(label=formatC(value, digits=2, format="f"),
-                y=value+.2),
-            size=2.5, colour="grey40",fontface="bold",
-            data=kurzyplot[kurzyplot$kurzslot=="oba",]) +
-  theme_discover_multi
+chartkurzy <- function (turnus="Júl", theme, columns=4) { # has to be either "Júl" or "August"
+  ggplot(kurzyplot[kurzyplot$turnus == turnus,],
+         aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
+    geom_line(size=1) +
+    geom_point(size=3, pch=19) +
+    facet_wrap(~ kurz, ncol=columns) +
+    scale_y_continuous(limits=c(1,3.5)) +
+    scale_colour_manual(values=c("lightgoldenrod1","aquamarine3","black")) +
+    geom_text(aes(label=formatC(value, digits=2, format="f"),
+                  y=value+.2),
+              size=2.5, colour="grey40",fontface="bold",
+              data=kurzyplot[kurzyplot$kurzslot=="oba" & kurzyplot$turnus==turnus,]) +
+    theme_discover_multi
+}
+```
+
+**Júlový turnus**
+
+```{r PoDnechJul, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+chartkurzy("Júl", theme_discover_multi, 3)
+```
+
+**Augustový turnus**
+
+```{r PoDnechAugust, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+chartkurzy("August", theme_discover_multi, 4) 
 ```
 
 ##  Hodnocení lektora
@@ -86,10 +105,8 @@ ggplot(kurzyplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
 lektor <- kurzy_long %>%
   filter(grepl("kurzobsah_",.$variable), !is.na(kurz)) %>% 
   mutate(variable = droplevels(variable)) %>% 
-  group_by(kurz, variable, value) %>% 
+  group_by(kurz, variable, value, turnus) %>% 
   summarise(pocet = n())
-
-lektor_wide <- dcast(lektor, "... ~ value")
 
 lektor$variable <- plyr::revalue(lektor$variable,
                                  c("kurzobsah_lekodbornik"="Byl lektor dostatečný odborník na tento kurz?",
@@ -102,7 +119,9 @@ lektor$variable <- plyr::revalue(lektor$variable,
                                    "kurzobsah_problemzapojit"="Měl/a jsi problém zapojit se do dění v kurzu?"
                                  ))
 negativnihodnoty <- c("Určitě ne", "Spíše ne")
+lektor <- lektor[!is.na(lektor$value),]
 lektor2 <- lektor %>%  
+  group_by(turnus, kurz, variable) %>% 
   mutate(share=pocet/sum(pocet),
          share = ifelse(value %in% negativnihodnoty, -share, share),
          share = ifelse(value=="Nevím", -share/2, share)) %>% 
@@ -128,28 +147,42 @@ l_negative <- l_negative[!is.na(l_negative$variable),]
 l_positive <- arrange(l_positive, value)
 l_negative <- arrange(l_negative, desc(value))
 
-ggplot() +
-  aes(fill=value, x=variable, y=share, group=kurz, order=value) +
-  geom_bar(stat="identity", position="stack", color="grey96",
-           data=l_positive) +
-  geom_bar(stat="identity", position="stack", color="grey96",
-           data=l_negative) +
-  facet_wrap(~kurz, ncol = 4) + 
-  coord_flip() +
-  # scale_fill_brewer(palette = "RdBu") +
-  scale_fill_manual(values=c("Určitě ne"="firebrick3",
-                             "Spíše ne"="firebrick1",
-                             "Nevím"="grey95",
-                             "Spíše ano"="steelblue1",
-                             "Určitě ano"="steelblue3"),
-                    breaks=c("Určitě ne","Spíše ne","Nevím","Spíše ano",
-                             "Určitě ano")) +
-  scale_y_continuous(labels=percent) +
-  scale_x_discrete(labels=function(x) {str_wrap(x, width = 30)}) +
-  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
-  theme_discover_multi + theme(panel.grid.major.y=element_blank(),
-                         panel.grid.major.x=element_line(color="white"),
-                         axis.text.y=element_text(size=9))
+chartlektori <- function (turnus="Júl", columns=3) {
+  ggplot() +
+    aes(fill=value, x=variable, y=share, group=kurz, order=value) +
+    geom_bar(stat="identity", position="stack", color="grey96",
+             data=l_positive[l_positive$turnus==turnus,]) +
+    geom_bar(stat="identity", position="stack", color="grey96",
+             data=l_negative[l_negative$turnus==turnus,]) +
+    facet_wrap(~kurz, ncol = columns) + 
+    coord_flip() +
+    # scale_fill_brewer(palette = "RdBu") +
+    scale_fill_manual(values=c("Určitě ne"="firebrick3",
+                               "Spíše ne"="firebrick1",
+                               "Nevím"="grey95",
+                               "Spíše ano"="steelblue1",
+                               "Určitě ano"="steelblue3"),
+                      breaks=c("Určitě ne","Spíše ne","Nevím","Spíše ano",
+                               "Určitě ano")) +
+    scale_y_continuous(labels=percent) +
+    scale_x_discrete(labels=function(x) {str_wrap(x, width = 30)}) +
+    guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+    theme_discover_multi + theme(panel.grid.major.y=element_blank(),
+                           panel.grid.major.x=element_line(color="white"),
+                           axis.text.y=element_text(size=9))
+}
+```
+
+### Júlový turnus
+
+```{r LektoriJul, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2, fig.height=12}
+chartlektori("Júl", 4)
+```
+
+### Augustový turnus
+
+```{r LektoriAugust, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2, fig.height=12}
+chartlektori("August", 3)
 ```
 
 
@@ -162,13 +195,15 @@ rm("addthis", "hod", "kurzhodavg", "kurzhodavg_c", "kurzy2", "kurzy3",
 
 ### Jak lektor učí
 
-**Co nejlépe vystihuje, jak lektor učí?**
+#### **Co nejlépe vystihuje, jak lektor učí?**
+
+Ptali jsme se jen na júlovém turnuse.
 
 ```{r JakUci, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2}
 
 dida <- kurzy_long %>% 
   filter(grepl("jakuci",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -178,23 +213,34 @@ dida$value <- as.factor(dida$value)
 dida$value <- factor(dida$value, levels(dida$value)[c(2,1,4,3)])
 dida <- arrange(dida, desc(value))
 
-ggplot(dida, aes(value, share, fill=variable, order=value, group=kurz)) +
-  geom_area(stat="identity", fill="lightgoldenrod1") +
-  geom_point(stat="identity", colour="lightgoldenrod1", size=2) +
-  coord_flip() +
-  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 20)) +
-  facet_wrap(~kurz, ncol=4) +
-  scale_y_continuous(labels=percent) +
-  theme_discover_multi + theme(panel.grid.major.y=element_blank(),
-                                panel.grid.minor.x=element_blank(),
-                                panel.grid.major.x=element_line(),
-                                axis.text.y=element_text(size=9),legend.position="none")
+chartjakuci <- function (turnus, columns) {
+  ggplot(dida[dida$turnus==turnus,],
+         aes(value, share, fill=variable, order=value, group=kurz)) +
+    geom_area(stat="identity", fill="lightgoldenrod1") +
+    geom_point(stat="identity", colour="lightgoldenrod1", size=2) +
+    coord_flip() +
+    scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 20)) +
+    facet_wrap(~kurz, ncol=columns) +
+    scale_y_continuous(labels=percent) +
+    theme_discover_multi + theme(panel.grid.major.y=element_blank(),
+                                  panel.grid.minor.x=element_blank(),
+                                  panel.grid.major.x=element_line(),
+                                  axis.text.y=element_text(size=9),legend.position="none")
+}
 
+```
+
+**Júlový turnus**
+
+```{r ChartJakUciJul, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+chartjakuci("Júl", 3)
 ```
 
 ### Přednášky *versus* interaktivita
 
-**Přednášel lektor sám, nebo učil interaktivně?**
+#### **Přednášel lektor sám, nebo učil interaktivně?**
+
+Ptali jsme se jen na júlovém turnuse.
 
 ```{r Interaktivita, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2}
 
@@ -226,34 +272,48 @@ ggplot(dida,
 
 ### Jak by měli lektoři změnit svůj styl?
 
-**Měl by lektor učit jinak?**
+#### **Měl by lektor učit jinak?**
 
 ```{r Jakzmenit, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=10}
 
 dida <- kurzy_long %>% 
   filter(grepl("kurzucitjinak",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
 
 dida$value <- as.factor(dida$value)
 # levels(dida$value)
-dida$value <- factor(dida$value, levels(dida$value)[c(6,4,3,5,2,1)])
+dida$value <- factor(dida$value, levels(dida$value)[c(6,3,4,5,2,1)])
 dida <- arrange(dida, desc(value))
 
-ggplot(dida,
-                aes(value, share, fill=variable, order=value, group=kurz)) +
-  geom_area(stat="identity", fill="firebrick1") +
-  geom_point(stat="identity", colour="firebrick1", size=2) +
-  coord_flip() +
-  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 20)) +
-  scale_y_continuous(labels=percent) +
-  facet_wrap(~kurz, ncol=4) +
-  theme_discover_multi + theme(panel.grid.major.y=element_blank(),
-                                panel.grid.minor.x=element_blank(),
-                                panel.grid.major.x=element_line(),
-                                axis.text.y=element_text(size=10),legend.position="none")
+lektorucitjinakchart <- function (turnus, columns) {
+  ggplot(dida[dida$turnus==turnus,],
+                  aes(value, share, fill=variable, order=value, group=kurz)) +
+    geom_area(stat="identity", fill="firebrick1") +
+    geom_point(stat="identity", colour="firebrick1", size=2) +
+    coord_flip() +
+    scale_x_discrete(drop=F) +
+    scale_y_continuous(labels=percent) +
+    facet_wrap(~kurz, ncol=columns) +
+    theme_discover_multi + theme(panel.grid.major.y=element_blank(),
+                                  panel.grid.minor.x=element_blank(),
+                                  panel.grid.major.x=element_line(),
+                                  axis.text.y=element_text(size=10),legend.position="none")
+}
+```
+
+**Júlový turnus**
+
+```{r LektorUcitJinakChartJul, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+lektorucitjinakchart("Júl", 4)
+```
+
+**Augustový turnus**
+
+```{r LektorUcitJinakChartAugust, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+lektorucitjinakchart("August", 4)
 ```
 
 ## Náročnost
@@ -267,7 +327,7 @@ vhodne <- c("Vhodně náročné")
 
 narocnost <- kurzy_long %>% 
   filter(grepl("narocnost",variable)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet)) %>% 
@@ -275,7 +335,7 @@ narocnost <- kurzy_long %>%
          share = ifelse(value %in% vhodne,-share/2, share)) %>%
   filter(!is.na(value)) %>% 
   filter(value!="Mého kurzu se netýká") %>% 
-  filter(!is.na(variable))
+  filter(!is.na(variable) & !is.na(kurz))
 
 narocnost$variable <- plyr::revalue(narocnost$variable,
                                  c("kurznarocnost_narochod"="setkání kurzu",
@@ -298,40 +358,56 @@ l_negative <- l_negative[!is.na(l_negative$variable),]
 l_positive <- arrange(l_positive, desc(value))
 l_negative <- arrange(l_negative, value)
 
-ggplot() +
-  aes(fill=value, x=variable, y=share, group=kurz, order=value) +
-  geom_bar(stat="identity", position="stack", color="grey96",
-           data=l_positive) +
-  geom_bar(stat="identity", position="stack", color="grey96",
-           data=l_negative) +
-  facet_wrap(~kurz, ncol = 4) + 
-  coord_flip() +
-  # scale_fill_brewer(palette = "RdBu") +
-  scale_fill_manual(values=c("Velmi těžké"="firebrick3",
-                             "Spíše těžké"="firebrick1",
-                             "Vhodně náročné"="white",
-                             "Spíše lehké"="steelblue1",
-                             "Velmi lehké"="steelblue3",
-                             "Nevím"="grey80"),
-                    breaks=c("Velmi těžké","Spíše těžké","Vhodně náročné",
-                             "Spíše lehké","Velmi lehké","Nevím")) +
-  scale_y_continuous(labels=percent) +
-  scale_x_discrete(labels=function(x) {str_wrap(x, width=15)}) +
-  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
-  theme_discover_multi + theme(panel.grid.major.y=element_blank(),
-                         panel.grid.major.x=element_line(color="white"),
-                         axis.text.y=element_text(size=9))
+narocnostchart <- function (turnus, columns) {
+  ggplot() +
+    aes(fill=value, x=variable, y=share, group=kurz, order=value) +
+    geom_bar(stat="identity", position="stack", color="grey96",
+             data=l_positive[l_positive$turnus==turnus,]) +
+    geom_bar(stat="identity", position="stack", color="grey96",
+             data=l_negative[l_negative$turnus==turnus,]) +
+    facet_wrap(~kurz, ncol = columns) + 
+    coord_flip() +
+    # scale_fill_brewer(palette = "RdBu") +
+    scale_fill_manual(values=c("Velmi těžké"="firebrick3",
+                               "Spíše těžké"="firebrick1",
+                               "Vhodně náročné"="white",
+                               "Spíše lehké"="steelblue1",
+                               "Velmi lehké"="steelblue3",
+                               "Nevím"="grey80"),
+                      breaks=c("Velmi těžké","Spíše těžké","Vhodně náročné",
+                               "Spíše lehké","Velmi lehké","Nevím")) +
+    scale_y_continuous(labels=percent) +
+    scale_x_discrete(labels=function(x) {str_wrap(x, width=15)}) +
+    guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+    theme_discover_multi + theme(panel.grid.major.y=element_blank(),
+                           panel.grid.major.x=element_line(color="white"),
+                           axis.text.y=element_text(size=9))
+}
+```
+
+**Júlový turnus**
+
+```{r NarocnostChartJul, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+narocnostchart("Júl", 3)
+```
+
+**Augustový turnus**
+
+```{r NarocnostAugust, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+narocnostchart("August", 3)
 ```
 
 ### Jak se studentům nejlépe učí?
 
 #### **Jak se ti na kurzu nejlépe pracovalo?**
 
+Ptali jsme se jen na júlovém turnuse.
+
 ```{r JakNejlepePracuje, Jdev="CairoPNG", fig.cap="",dpi=200, fig.retina=2, fig.height=7,fig.cap=""}
 
 dida <- kurzy_long %>% 
   filter(grepl("kurzjaknejlepepraco",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -358,7 +434,7 @@ ggplot(dida,
 ```{r JakNejlepeUci, dev="CairoPNG", dpi=200, fig.cap="", fig.height=7, fig.retina=2}
 dida <- kurzy_long %>% 
   filter(grepl("kurzjaknejuci",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -368,33 +444,51 @@ dida$value <- as.factor(dida$value)
 dida$value <- factor(dida$value, levels(dida$value)[c(4, 3, 2, 1, 5)])
 dida <- arrange(dida, desc(value))
 
-ggplot(dida,
-                aes(value, share, fill=variable, order=value, group=kurz)) +
-  geom_bar(stat="identity", fill="turquoise1") +
-  coord_flip() +
-  scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
-  scale_y_continuous(labels=percent) +
-  facet_wrap(~kurz, ncol=4) +
-  theme_discover_multi + theme(panel.grid.major.y=element_blank(),
-                                panel.grid.minor.x=element_blank(),
-                                panel.grid.major.x=element_line(),
-                                axis.text.y=element_text(size=10),legend.position="none")
+jaknejlepeucichart <- function (turnus, columns) {
+  ggplot(dida[dida$turnus==turnus,],
+                  aes(value, share, fill=variable, order=value, group=kurz)) +
+    geom_bar(stat="identity", fill="turquoise1") +
+    coord_flip() +
+    scale_x_discrete(drop=F, labels = function(x) str_wrap(x, width = 10)) +
+    scale_y_continuous(labels=percent) +
+    facet_wrap(~kurz, ncol=columns) +
+    theme_discover_multi + theme(panel.grid.major.y=element_blank(),
+                                  panel.grid.minor.x=element_blank(),
+                                  panel.grid.major.x=element_line(),
+                                  axis.text.y=element_text(size=10),legend.position="none")
+}
 
+```
+
+**Júlový turnus**
+
+```{r JakNejlepeUciChartJul, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+jaknejlepeucichart("Júl", 4)
+```
+
+**Augustový turnus**
+
+```{r JakNejlepeUciChartAugust, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+jaknejlepeucichart("August", 3)
 ```
 
 # Bonus: jak udělat skvělý kurz
 
-Jak daleko vpravo je tečka, o tolik zhoršoval daný faktor průměrnou známku v kurzu.
+Jak daleko vpravo je tečka, o tolik zhoršoval daný faktor (a u věku zvýšení o 1) průměrnou známku v kurzu - po odečtení vlivu ostatních zahrnutých faktorů. Například: augustové hodnocení bylo lepší než júlové i po odečtení vlivu rozdílného podílu kluků a holek a prvoúčastníků mezi oběma turnusy; experimentální ekonomie byla hodnocena lépe než ekonomie po zohlednění rozdílného složení účastníků a toho, že ekonomie se učila jen ve slotu B a experimentální ekonomie jen ve slotu A.
 
-Tj. pokud učíte ve druhém bloku, čekejte o 0.19 stupně lepší známku.
+Pokud se vodorovná linka nepřekrývá se svislou tečkovanou čarou, je velká šance, že výsledek nevznikl náhodou (výsledek je statisticky významný na 95% hladině spolehlivosti).
 
-Dny se srovnávají se čtvrtkem, tj. v pondělí čekejte o 0.18 stupně horší známku než ve čtvrtek.
+Takže:
 
-Kurzy se srovnávají s bioetikou, tj. politologie byla hodnocena o 0.56 stupně hůř než bioetika, a to i po odstínění vlivu ostatních faktorů (např. věku účastníků, bloku, ve kterém se kurz učil, atd.)
+- pokud učíte v prvním bloku, čekejte o 0.14 stupně horší známku (`kurzslotB`)
+- středeční a další hodiny byly hodnocené lépe než pondělní
+- většina kurzů byla hodnocena lépe než analytická filosofie (to je base kategorie kurzů), ale u velké části kurzů (např. ekonomie, matematika) data neukazují na žádný rozdíl v hodnocení
+- kluci hodnotí skoro o třetinu stupně hůř než holky
+- prvoDiscoveráci hodnotí o něco pozitivněji (`poprveAno`)
+- věk nemá na hodnocení vliv
 
-Kluci hodnotí hůř, ale opakovaní účastnící (poprveNe) nehodnotí přísněji než nováčci; ani starší účastníci nehodnotí hůř nebo líp než mladší.
+Celá tahle hračka umí vysvětlit jen 12% variability všech hodnocení; zbytek jsou rozdíly mezi jednotlivci a jejich dojmy z různých kurzů a různých hodin. Krom toho je model značně nedokonalý, tak to berte cum grano salis.
 
-Pokud se vodorovná čárka nepřekrývá se svislou tečkovanou čarou, je efekt statisticky významný.
 
 ```{r SkvelyKurz, dev="CairoPNG", dpi=200, fig.cap="", fig.height=7, fig.retina=2, results="hide"}
 
@@ -406,11 +500,26 @@ velikost <- plyr::rename(velikost,c("variable"="kurzslot", "value"="velikost"))
 hod <- filter(kurzy_long, variable %in% dnyvtydnu)
 hod$value <- as.numeric(hod$value)
 
-model <- lm(value ~ variable + vek + pohlavi + kurzslot + kurz + poprve + turnus, data = hod)
+hod$poprve <- as.factor(hod$poprve)
+
+hod$poprve <- relevel(hod$poprve, "Ne")
+hod <- plyr::rename(hod,c("variable"="den"))
+hod$den <- as.factor(hod$den)
+hod$den <- relevel(hod$den, "po")
+
+hod$kurz <- paste0(hod$kurz, "_", hod$turnus)
+
+model <- lm(value ~ den + vek + pohlavi + kurzslot + kurz + poprve, data = hod)
+modelJ <- lm(value ~ den + vek + pohlavi + kurzslot + kurz + poprve,
+             data = hod[hod$turnus=="Júl",])
+modelA <- lm(value ~ den + vek + pohlavi + kurzslot + kurz + poprve,
+             data = hod[hod$turnus=="August",])
 # summary(model)
 
 library(sjPlot)
 sjp.setTheme(geom.label.size = 2, axis.tickslen = 0, panel.backcol = NULL)
 modelplot <- sjp.lm(model, sort.est = F)
+# modelplotJ <- sjp.lm(modelJ, sort.est = F)
+# modelplotA <- sjp.lm(modelA, sort.est = F)
 
 ```

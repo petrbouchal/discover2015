@@ -1,6 +1,11 @@
 ---
 title: "Zpětná vazba Discover 2015"
-output: html_document
+output: 
+  html_document: 
+    fig_caption: no
+    theme: null
+    toc: yes
+    css: custom.css
 ---
 
 ![](http://discover.sda.sk/wp-content/uploads/2013/02/farebne-k%C3%B3pia.png)
@@ -15,6 +20,7 @@ Zpětná vazba Discover 2015
 ```{r Prep, echo=F, include=F}
 
 setwd("~/github/discover2015/d15eval/")
+source("./library.R")
 source("./d15eval_setup.R")
 setwd("~/github/discover2015/d15eval/")
 source("./d15eval_kurzy_setup.R")
@@ -37,32 +43,32 @@ theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
                         strip.background=element_rect(fill="white"),
                         legend.key.width=unit(.3,"cm"))
 
-# Fix css handling
-
-options(rstudio.markdownToHTML = 
-          function(inputFile, outputFile) {      
-            require(markdown)
-            markdownToHTML(inputFile, outputFile, stylesheet='custom.css')   
-          }
-)
-
 ```
 
 # Kurzy
 
-## Jednotlivé kurzy
-
 ```{r echo=F, results="asis"}
 # generuje jen odkazy; odkazované reporty je třeba vygenerovat zvlášť v souboru kurzreport_generator.R
-for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz)]))){
-  cat(paste0("- <a href=\"reporty_kurzy/report_", ikurz,".html\">",ikurz,"</a>",
-             "  <a href=\"reporty_kurzy/report_", ikurz,".docx\"> (word)</a><br />"),sep="\n")
+
+for (iturnus in c("Júl","August")) { 
+  cat(paste0("### ", iturnus, "\n"))
+  for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz) & kurzy_long$turnus==iturnus]))){
+    cat(paste0(
+      "- <a href=\"reporty_kurzy/report_", ikurz, "_",iturnus,".html\">",ikurz,"</a>",
+      " (",
+      "<a href=\"reporty_kurzy/report_", ikurz, "_", iturnus,".docx\">word</a>",
+      " | ",
+      "<a href=\"reporty_kurzy/data_", ikurz, "_",iturnus,".csv\">data</a>" ,
+      ")","\n",
+      sep=""))
+  }
+  cat("\n")
 }
 ```
 
-## Srovnání
+## Srovnání všech kurzů
 
-- [Kurzy](kurzy.html)
+- [Oba turnusy](kurzy.html)
 
 ```{r generateKurzyComp, echo=F, include=F}
 knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "discoverfeedback/kurzy")
@@ -72,10 +78,12 @@ knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "discove
 
 *zatím jen základní info k workshopům, další informace coming soon*
 
-- [Workshopy a týmy](workshopy.html)
+- [Workshopy a týmy: júl](workshopy_jul.html)
+- [Workshopy a týmy: august (in progress)](workshopy_aug.html)
 
 ```{r generateWorkshopy, echo=F, include=F}
-knitr::knit2html("d15eval_workshopy.Rmd", stylesheet="custom.css", output="discoverfeedback/workshopy")
+knitr::knit2html("d15eval_workshopy_jul.Rmd", stylesheet="custom.css", output="discoverfeedback/workshopy_jul")
+knitr::knit2html("d15eval_workshopy_aug.Rmd", stylesheet="custom.css", output="discoverfeedback/workshopy_aug")
 ```
 
 # Program a organizace: rozložení dne, komunikace, organizace
@@ -83,7 +91,7 @@ knitr::knit2html("d15eval_workshopy.Rmd", stylesheet="custom.css", output="disco
 *coming soon*
 
 ```{r generateProgram, echo=F, include=F}
-# knitr::knit2html("d15eval_program.Rmd", stylesheet="custom.css", output="discoverfeedback/program")
+# knitr::knit2html("d15eval_tymove.Rmd", stylesheet="custom.css", output="discoverfeedback/program_jul")
 ```
 
 # Dopad Discover

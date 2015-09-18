@@ -1,10 +1,10 @@
 ## Kurzy: select vars and reshape into long format
 
 kurzy <- df %>% 
-  select(starts_with("kurz"),pohlavi,rocnik,vek, -kurzyjakedalsi, id ,
+  select(starts_with("kurz"),pohlavi,rocnik,vek, -kurzyjakedalsi, uid ,
          -contains("Time"), turnus, poprve=minulerocniky_prvno) %>%
   mutate(poprve=ifelse(poprve=="Ano","Ano","Ne")) %>% 
-  melt(id.vars=c("id","pohlavi","vek","rocnik","poprve","turnus"))
+  melt(id.vars=c("uid","pohlavi","vek","rocnik","poprve","turnus"))
 
 kurzy$kurzslot <- ifelse(grepl("kurz1",kurzy$variable),"A","B")
 
@@ -29,6 +29,6 @@ dnyvtydnu <- c("po","út","st","čt","pá","so")
 
 kurzy2 <- dcast(kurzy, "... ~ variable", value.var="value")
 
-kurzy_long <- melt(kurzy2, id.vars=c("id","pohlavi","vek","rocnik","kurzktery",
+kurzy_long <- melt(kurzy2, id.vars=c("uid","pohlavi","vek","rocnik","kurzktery",
                                      "kurzslot","poprve","turnus"))
 kurzy_long <- plyr::rename(kurzy_long, c("kurzktery"="kurz"))
