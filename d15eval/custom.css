@@ -45,8 +45,19 @@ h6 {
    font-weight: normal;
 }
 
+a {
+  color: #83A321;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #83A321;
+  text-decoration: underline;
+}
+
 a:visited {
-   color: rgb(50%, 0%, 50%);
+   color: rgb(50%, 50%, 50%);
+  text-decoration: none;
 }
 
 pre, img {
