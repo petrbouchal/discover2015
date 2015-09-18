@@ -1,5 +1,5 @@
 ---
-title: `r ikurz`
+title: `r paste0(ikurz, " (", tolower(iturnus), "ový turnus)")`
 output: 
   html_document: 
     fig_caption: no
@@ -8,9 +8,11 @@ output:
     css: custom.css
 ---
 
-# `r ikurz `
+# `r paste0(ikurz, " (", tolower(iturnus), "ový turnus)")`
 
-[*Zpětná vazba, júlový turnus Discover*](../index.html)
+[Zpět na rozcestník zpětné vazby](../index.html) | 
+[Tento report we Wordu](`r paste0("report_",ikurz, "_", iturnus)`.docx) |
+[Data v CSV](`r paste0("data_",ikurz, "_", iturnus)`.csv)
 
 
 ``` {r KnitrPrep, cache=FALSE,include=FALSE}
@@ -39,7 +41,7 @@ library(pbtools)
 ```
 
 ```{r LoadDataKurzy, include=F, echo=F,fig.cap=""}
-kurz_long <- kurzy_long %>% filter(kurz==ikurz)
+kurz_long <- kurzy_long %>% filter(kurz==ikurz, turnus==iturnus)
 kurzy3 <- kurz_long %>% 
   filter(variable %in% dnyvtydnu,
          !is.na(kurz)) %>% 
@@ -96,6 +98,10 @@ Průměrná známka: `r knitr::kable(hodavg, digits=2)  `
 
 ### Hodnocení po dnech
 
+A a B jsou bloky (A je 9-10:30, B je 11-12:30)
+
+Známky jsou jako ve škole: 1 je nejlepší, 5 nejhorší
+
 ```{r GrafHodnoceni, dev="CairoPNG",dpi=200, fig.height=4,fig.cap=""}
 ggplot(kurzplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
   geom_line(size=1) +
@@ -114,14 +120,22 @@ ggplot(kurzplot, aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
 
 ```{r KurzLibilo, results="asis"}
 
-cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzlibilo" & !is.na(kurz_long$value)]), sep="\n\n")
+texty <- kurz_long$value[kurz_long$variable=="kurzlibilo" & !is.na(kurz_long$value)]
+texty <- texty[str_length(texty)>2]
+if(length(texty)>0) {
+  cat(paste("* ", texty), sep="\n\n")
+}
 ```
 
 ### Co na kurzu změnit
 
 ```{r KurzZmenit, results="asis"}
 
-cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzzmenit" & !is.na(kurz_long$value)]), sep="\n\n")
+texty <- kurz_long$value[kurz_long$variable=="kurzzmenit" & !is.na(kurz_long$value)]
+texty <- texty[str_length(texty)>2]
+if(length(texty)>0) {
+  cat(paste("* ", texty), sep="\n\n")
+}
 ```
 
 
@@ -199,8 +213,11 @@ ggplot() +
 ### Komentáře k lektorovi 
 
 ```{r KomentLektor, results="asis"}
-
-cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzlektorpoznamky" & !is.na(kurz_long$value)]), sep="\n\n")
+texty <- kurz_long$value[kurz_long$variable=="kurzlektorpoznamky" & !is.na(kurz_long$value)]
+texty <- texty[str_length(texty)>2]
+if(length(texty)>0) {
+  cat(paste("* ", texty), sep="\n\n")
+}
 ```
 
 ## Náročnost kurzu
@@ -278,12 +295,14 @@ ggplot() +
 
 ## Didaktika
 
+Na některé otázky jsme se na augustovém turnuse neptali - tam uvidíte nadpis bez grafu.
+
 ### Jak lektor učí a měl by to změnit?
 
 ```{r JakUci, dev="CairoPNG", dpi=200, fig.height=4.5,fig.cap=""}
-dida <- kurzy_long %>% 
+dida <- kurz_long %>% 
   filter(grepl("jakuci",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -293,7 +312,7 @@ dida$value <- as.factor(dida$value)
 dida$value <- factor(dida$value, levels(dida$value)[c(2,1,4,3)])
 dida <- arrange(dida, desc(value))
 
-plot1 <- ggplot(dida[dida$kurz==ikurz,],
+plot1 <- ggplot(dida[dida$kurz==ikurz & dida$turnus==iturnus,],
                 aes(value, share, fill=variable, order=value, group=kurz)) +
   geom_area(stat="identity", fill="lightgoldenrod1") +
   geom_point(stat="identity", colour="lightgoldenrod1", size=2) +
@@ -308,7 +327,7 @@ plot1 <- ggplot(dida[dida$kurz==ikurz,],
 
 dida <- kurzy_long %>% 
   filter(grepl("kurzsamvsInteraktiv",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -318,7 +337,7 @@ dida$value <- as.factor(dida$value)
 dida$value <- factor(dida$value, levels(dida$value)[c(3,2,5,4,1)])
 dida <- arrange(dida, desc(value))
 
-plot2 <- ggplot(dida[dida$kurz==ikurz,],
+plot2 <- ggplot(dida[dida$kurz==ikurz & dida$turnus==iturnus,],
                 aes(value, share, fill=variable, order=value, group=kurz)) +
   geom_area(stat="identity", fill="aquamarine3") +
   geom_point(stat="identity", colour="aquamarine3", size=2) +
@@ -333,17 +352,17 @@ plot2 <- ggplot(dida[dida$kurz==ikurz,],
 
 dida <- kurzy_long %>% 
   filter(grepl("kurzucitjinak",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
 
 dida$value <- as.factor(dida$value)
 # levels(dida$value)
-dida$value <- factor(dida$value, levels(dida$value)[c(6,4,3,5,2,1)])
+dida$value <- factor(dida$value, levels(dida$value)[c(6,3,4,5,2,1)])
 dida <- arrange(dida, desc(value))
 
-plot3 <- ggplot(dida[dida$kurz==ikurz,],
+plot3 <- ggplot(dida[dida$kurz==ikurz & dida$turnus==iturnus,],
                 aes(value, share, fill=variable, order=value, group=kurz)) +
   geom_area(stat="identity", fill="firebrick1") +
   geom_point(stat="identity", colour="firebrick1", size=2) +
@@ -365,7 +384,7 @@ grid.arrange(plot1,plot2,plot3, nrow=1)
 ```{r dev="CairoPNG", dpi=200, fig.height=2.5,fig.cap=""}
 dida <- kurzy_long %>% 
   filter(grepl("kurzjaknejlepepraco",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -374,7 +393,7 @@ dida$value <- as.factor(dida$value)
 # levels(dida$value)
 dida <- arrange(dida, desc(value))
 
-plot1 <- ggplot(dida[dida$kurz==ikurz,],
+plot1 <- ggplot(dida[dida$kurz==ikurz & dida$turnus==iturnus,],
                 aes(value, share, fill=variable, order=value, group=kurz)) +
   geom_bar(stat="identity", fill="hotpink1") +
   coord_flip() +
@@ -388,7 +407,7 @@ plot1 <- ggplot(dida[dida$kurz==ikurz,],
 
 dida <- kurzy_long %>% 
   filter(grepl("kurzjaknejuci",variable), !is.na(value), !is.na(kurz)) %>% 
-  group_by(kurz, variable, value) %>%
+  group_by(turnus, kurz, variable, value) %>%
   summarise(pocet=n()) %>% 
   group_by(kurz, variable) %>% 
   mutate(share=pocet/sum(pocet))
@@ -398,7 +417,7 @@ dida$value <- as.factor(dida$value)
 dida$value <- factor(dida$value, levels(dida$value)[c(4, 3, 2, 1, 5)])
 dida <- arrange(dida, desc(value))
 
-plot2 <- ggplot(dida[dida$kurz==ikurz,],
+plot2 <- ggplot(dida[dida$kurz==ikurz & dida$turnus==iturnus,],
                 aes(value, share, fill=variable, order=value, group=kurz)) +
   geom_bar(stat="identity", fill="turquoise1") +
   coord_flip() +
@@ -419,6 +438,23 @@ grid.arrange(plot1,plot2, nrow=1)
 **Pokud ano, jak? Pokud ne, proč ne?**
 
 ```{r KurzOvlivnil, results="asis"}
+texty <- kurz_long$value[kurz_long$variable=="kurzovlivnil" & !is.na(kurz_long$value)]
+texty <- texty[str_length(texty)>2]
+if(length(texty)>0) {
+  cat(paste("* ", texty), sep="\n\n")
+}
+```
 
-cat(paste("* ", kurz_long$value[kurz_long$variable=="kurzovlivnil" & !is.na(kurz_long$value)]), sep="\n\n")
+```{r SaveData, include=FALSE, echo=FALSE}
+
+kurz_long_publish <- kurz_long %>%
+  select(-vek, -rocnik, -kurz, -kurzslot, -poprve, -pohlavi, -turnus) %>% 
+  mutate(variable = ifelse(variable %in% dnyvtydnu,
+                           paste0("hodnoceni_",variable),paste0(variable))) %>% 
+  spread(variable, value) %>% 
+  select(-uid)
+
+write.csv(kurz_long_publish, file = paste0("./discoverfeedback/reporty_kurzy/data_",ikurz,"_",iturnus,".csv"),
+          row.names = F)
+
 ```
