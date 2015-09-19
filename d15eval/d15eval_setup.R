@@ -53,7 +53,7 @@ names(data) <- gsub("ovlivlila","ovlivnila",names(data))
 
 # rename data source to avoid name clashes
 df1 <- data
-df1 <- select(df1, -starts_with("Time"), -starts_with("Čas"))
+df1 <- select(df1, -contains("Time"), -contains("Čas."))
 rm(data)
 
 # mark turnus
@@ -131,7 +131,7 @@ table(df2_0$zapojeni, useNA="always")
 # merge both August surveys
 
 df2 <- rbind(df2_0, df2_1)
-df2 <- select(df2, -starts_with("Time"), -starts_with("Čas"))
+df2 <- select(df2, -contains("Čas."))
 # df2_0 <- select(df2_0, -starts_with("Time"), -starts_with("Čas"))
 # df2_1 <- select(df2_1, -starts_with("Time"), -starts_with("Čas"))
 
