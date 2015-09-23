@@ -130,7 +130,7 @@ wso <- wso0 %>%
 wso$nazev <- factor(wso$nazev, levels=wso$nazev[order(-wso$znamka)])
 wso <- arrange(wso, hodn)
 
-ggplot(wso, aes(y=as.numeric(pocetznamka), x=nazev, fill=hodn, group=nazev)) +
+wsplot <- ggplot(wso, aes(y=as.numeric(pocetznamka), x=nazev, fill=hodn, group=nazev)) +
   geom_bar(stat="identity", position="stack") +
   scale_fill_manual(values = rev(brewer.pal(5,"RdYlGn"))) +
   coord_flip() + theme_discover + theme(panel.grid.major.y=element_blank(),
@@ -140,6 +140,11 @@ ggplot(wso, aes(y=as.numeric(pocetznamka), x=nazev, fill=hodn, group=nazev)) +
 
 ```
 
+Průměrná známka (jako ve škole): `r format(weighted.mean(wso$znamka, wso$pocetznamka, na.rm=T), digits=3)`
+
+```{r wsOdpoHodnoPlot, echo=F, dpi=200, dev="CairoPNG", fig.retina=2, fig.height=6, eval=T}
+wsplot
+```
 ----
 
 # Týmové workshopy
@@ -188,6 +193,8 @@ ggplot(twszaj, aes(group=variable, x=variable, y=pocet, fill=value,
 
 ### **Hodnocení týmových workshopů podle předchozí účasti na Discover**
 
+(1 = určitě ano, 5 = určitě ne)
+
 ```{r wsTymHodnProc, echo=F, include=F}
 tws <- df1 %>% 
   select(contains("wsTymove"),id,pohlavi,vek,rocnik,-contains("Time"),
@@ -217,7 +224,10 @@ hodnpodleucasti <- group_by(tws, poprve) %>%
 names(hodnpodleucasti) <- c("Předchozí účast",
                             "Hodnocení (1=Určitě zajímavé, 5=Určitě nezajímavé)",
                             "Počet účastníků")
-# kable(hodnpodleucasti, digits=2)
+hodnpodleucasti <- rbind(hodnpodleucasti[1:2,],
+                         list("Celkem",
+                              weighted.mean(hodnpodleucasti[1:2,2][[1]],hodnpodleucasti[1:2,3][[1]]),
+                              sum(hodnpodleucasti[1:2,]$`Počet účastníků`)))
 
 stargazer(as.matrix(format(hodnpodleucasti, quote=FALSE,
                            justify="right",digits=3), rownames.force = FALSE),
