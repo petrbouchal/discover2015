@@ -52,7 +52,8 @@ theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
 
 for (iturnus in c("Júl","August")) { 
   cat(paste0("### ", iturnus, "\n"))
-  for (ikurz in (unique(kurzy_long$kurz[!is.na(kurzy_long$kurz) & kurzy_long$turnus==iturnus]))){
+  listkurzu <- sort(unique(kurzy_long$kurz[!is.na(kurzy_long$kurz) & kurzy_long$turnus==iturnus]))
+  for (ikurz in listkurzu){
     cat(paste0(
       "- <a href=\"reporty_kurzy/report_", ikurz, "_",iturnus,".html\">",ikurz,"</a>",
       " (",
