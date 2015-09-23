@@ -99,6 +99,13 @@ chartkurzy("Júl", theme_discover_multi, 3)
 chartkurzy("August", theme_discover_multi, 4) 
 ```
 
+Průměrné známky:
+
+Turnus | Průměrná známka
+|:---|:---|
+|  Júl |  `r format(mean(kurzy3[kurzy3$turnus=="Júl",]$value, na.rm=T), digits=3, nsmall=2)` |
+| August  | `r format(mean(kurzy3[kurzy3$turnus=="August",]$value, na.rm=T), digits=3, nsmall=2)`  |
+
 ##  Hodnocení lektora
 
 ```{r Lektori, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2, fig.height=12}
