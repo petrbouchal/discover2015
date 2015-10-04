@@ -25,25 +25,15 @@ source("./d15eval_setup.R")
 setwd("~/github/discover2015/d15eval/")
 source("./d15eval_kurzy_setup.R")
 
-loadcustomthemes(fontfamily = "Gill Sans MT")
-theme_discover_multi <- theme(panel.grid.minor=element_line(color="grey96", size=.25),
-                        panel.grid.major=element_line(color="white", size=.5),
-                        strip.text = element_text(size=9, color="grey20", hjust=0.1),
-                        panel.background = element_rect(fill="grey96"),
-                        axis.text.x = element_text(size=10),
-                        strip.background=element_rect(fill="grey96"),
-                        plot.title=element_text(size=10, lineheight=0.5, hjust=0),
-                        legend.key.width=unit(.3,"cm"))
-
-theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
-                        panel.grid.major=element_line(color="grey96", size=.3),
-                        strip.text = element_text(size=12, color="grey20"),
-                        panel.background = element_rect(fill="white"),
-                        axis.text.x = element_text(size=11),
-                        strip.background=element_rect(fill="white"),
-                        legend.key.width=unit(.3,"cm"))
-
 ```
+
+Co ještě chybí zpracovat (2/10/2015):
+* demografie
+* hodnocení večerního programu
+* organizační zajištění (komunikace před D, brožurka)
+* poptávka po nových kurzech
+* access, outreach/marketing
+* vysokoškolské destinace
 
 # Kurzy
 
@@ -75,26 +65,49 @@ for (iturnus in c("Júl","August")) {
 knitr::knit2html("d15eval_kurzy.Rmd", stylesheet="custom.css", output = "discoverfeedback/kurzy")
 ```
 
-# Program: odpolední a večerní workshopy, volný čas
+# Workshopy, volný čas
 
-*zatím jen základní info k workshopům, další informace coming soon*
+*Komplet informace ke všem workshopům; volný čas coming soon*
 
-- [Workshopy a týmy: júl](workshopy_jul.html)
-- [Workshopy a týmy: august (in progress)](workshopy_aug.html)
+- [Workshopy a týmy: júl a srovnání](workshopy_jul.html)
+- [Workshopy a týmy: august a srovnání](workshopy_aug.html)
+- [Večerní program a volný čas: oba turnusy - srovnání](volnycas.html)
+- [Duševní pohoda: oba turnusy - srovnání](dusevnipohoda.html)
 
 ```{r generateWorkshopy, echo=F, include=F}
 knitr::knit2html("d15eval_workshopy_jul.Rmd", stylesheet="custom.css", output="discoverfeedback/workshopy_jul")
 knitr::knit2html("d15eval_workshopy_aug.Rmd", stylesheet="custom.css", output="discoverfeedback/workshopy_aug")
+knitr::knit2html("d15eval_volnycas.Rmd", stylesheet="custom.css", output="discoverfeedback/volnycas")
+knitr::knit2html("d15eval_dusevnipohoda.Rmd", stylesheet="custom.css", output="discoverfeedback/dusevnipohoda")
 ```
 
-# Program a organizace: rozložení dne, komunikace, organizace
-
-*coming soon*
+# Program a organizace
 
 ```{r generateProgram, echo=F, include=F}
-# knitr::knit2html("d15eval_tymove.Rmd", stylesheet="custom.css", output="discoverfeedback/program_jul")
+knitr::knit2html("d15eval_program.Rmd", stylesheet="custom.css", output="discoverfeedback/program")
 ```
 
-# Dopad Discover
+- [Program: oba turnusy - srovnání (in progress)](program.html)
+- Organizace, komunikace (coming soon)
+- Poptávka po kurzech (coming soon)
 
-*coming soon*
+# Dopad a celkové hodnocení
+
+- [Dopad: jak Discover účastníky ovlivnil](dopad.html)
+
+```{r generateDopad, echo=F, include=F}
+knitr::knit2html("d15eval_dopad.Rmd", stylesheet="custom.css", output="discoverfeedback/dopad")
+```
+
+# Demografie, access, outreach, recruitment
+
+- Demografie (coming soon)
+- Access, outreach, recruitment (coming soon)
+
+```{r generateDemo, echo=F, include=F}
+knitr::knit2html("d15eval_demografie.Rmd", stylesheet="custom.css", output="discoverfeedback/demografie")
+```
+
+```{r generateOutreach, echo=F, include=F}
+knitr::knit2html("d15eval_outreach.Rmd", stylesheet="custom.css", output="discoverfeedback/outreach")
+```

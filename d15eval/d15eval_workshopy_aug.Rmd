@@ -198,7 +198,6 @@ stargazer(as.matrix(format(hodnpodleucasti, quote=FALSE,
 
 ### Proč ano, proč ne?
 
-
 ### *Komentáře těch, kdo hodnotili spíše pozitivně*
 
 ```{r wsTymPozit, results="asis"}
@@ -280,9 +279,51 @@ cat(paste0("* ", unique(df2$wsTymoveZmenit_comment[!is.na(df2$wsTymoveZmenit_com
   
 # Prefekti
 
-*coming soon*
+```{r Prefekti, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=3, results="asis"}
 
-## Hodnocení role
+prf <- df %>% 
+  select(contains("prefekt"), turnus, uid) %>% 
+  melt(id.vars=c("uid","turnus"))
 
-*coming soon*
+prf2 <- prf %>% 
+  filter(!grepl("comment",variable) & !is.na(value)) %>% 
+  group_by(turnus, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable),
+         variable=ifelse(variable=="prefektkomunikace","Komunikoval s tebou prefekt dostatečně?\n Dokázal ti pomoct, když jsi to potřeboval/a?",variable),
+         variable=ifelse(variable=="prefektVedlWS","Jak se tvému prefektovi dařilo\nvést týmové workshopy?", variable))
+
+prf2$value <- as.factor(prf2$value)
+# levels(prf2$value)
+prf2$value <- factor(prf2$value, c("Určitě ne",levels(prf2$value)[c(3,1,2,4)]))
+prf2$turnus <- factor(prf2$turnus,levels(prf2$turnus)[c(2,1)])
+# levels(prf2$value)
+prf2 <- arrange(prf2, value) 
+
+ggplot(prf2, aes(group=turnus, x=turnus, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(prf2$value)), drop=FALSE) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  scale_y_continuous(labels=percent) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.y=element_text(size=12)) +
+  facet_wrap(~variable, nrow = 1)
+
+```
+
+## Komentáře ke komunikaci (jen augustový turnus)
+
+```{r PrefektKomunikace, results="asis"}
+cat(paste0("* ", unique(df2$prefektkomunikace_comment[!is.na(df2$prefektkomunikace_comment)])),sep="\n")
+```
+
+## Komentáře k vedení workshopů (jen augustový turnus)
+
+```{r PrefektVedeniWS, results="asis"}
+cat(paste0("* ", unique(df2$prefektVedlWS_comment[!is.na(df2$prefektVedlWS_comment)])), sep="\n")
+```
 

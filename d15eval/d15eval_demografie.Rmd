@@ -1,0 +1,127 @@
+---
+title: 'Discover 2015: demografie'
+output:
+  html_document:
+    css: custom.css
+    fig_height: 8
+    fig_width: 8
+    number_sections: no
+    toc: yes
+    toc_depth: 1
+---
+
+Discover 2015: demografie (oba turnusy)
+==============
+----------
+
+*[Zpět na rozcestník zpětné vazby](index.html)*
+
+```{r PrepDemografie, echo=F, include=F}
+
+library(knitr)
+library(Cairo)
+# set up graphing:
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
+# make relative references work - change this to project directory
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
+
+CairoFonts(
+  regular="Gill Sans MT:style=Regular",
+  bold="Gill Sans MT:style=Bold",
+  italic="Gill Sans MT:style=Italic",
+  bolditalic="Gill Sans MT:style=Bold Italic,BoldItalic",
+  symbol="Symbol"
+)
+
+setwd("~/github/discover2015/d15eval/")
+source("./d15eval_setup.R")
+setwd("~/github/discover2015/d15eval/")
+```
+
+# Češi a Slováci
+
+# Kluci a holky
+
+# Věk
+
+```{r Demografie, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2, fig.height=3}
+
+demo2 <- df %>% 
+  filter(!is.na(pohlavi) & !is.na(vek)) %>% 
+  group_by(turnus, pohlavi) %>% 
+  summarise(vek=mean(vek, na.rm=T))
+
+ggplot(demo2, aes(x=pohlavi, y=vek, colour=turnus, group=turnus)) +
+  geom_line(size=2) +
+  scale_y_continuous(limits=c(14,20)) +
+  geom_point(size=4) +
+  geom_text(aes(label=paste("  ", turnus)), data=demo2[demo2$pohlavi=="Muž",],
+            hjust=0, fontface="bold", size=6) +
+  theme_discover +
+  theme(legend.position="none", axis.text.x=element_text(size=15))
+
+demo2 <- df %>% 
+  filter(!is.na(pohlavi) & !is.na(vek) & !is.na(CRorSK)) %>% 
+  group_by(CRorSK, pohlavi) %>% 
+  summarise(vek=mean(vek, na.rm=T))
+
+ggplot(demo2, aes(x=pohlavi, y=vek, colour=CRorSK, group=CRorSK)) +
+  geom_line(size=2) +
+  scale_y_continuous(limits=c(16,18)) +
+  geom_point(size=4) +
+  geom_text(aes(label=paste("  ", CRorSK)), data=demo2[demo2$pohlavi=="Muž",],
+            hjust=0, fontface="bold", size=6) +
+  theme_discover +
+  theme(legend.position="none", axis.text.x=element_text(size=15))
+
+ggplot(df[!is.na(df$CRorSK) & !is.na(df$pohlavi),],
+       aes(x=CRorSK,y=..count.., fill=pohlavi)) +
+  geom_bar(position="fill") +
+  scale_fill_manual(values=c("grey","lightblue1")) +
+  scale_y_continuous(labels=percent) +
+  theme_discover +
+  theme(legend.position="top", axis.text.x=element_text(size=15))
+
+```
+
+# Recidivisté aneb minulí účastníci
+
+```{r Recidivisté, echo=F, dev="CairoPNG",fig.cap="", dpi=200, fig.retina=2, fig.height=3}
+
+reci <- df %>% 
+  select(pohlavi, turnus, vek, minulerocniky_prvno, CRorSK) %>%
+  filter(!is.na(pohlavi) & !is.na(vek) & !is.na(CRorSK) & !is.na(minulerocniky_prvno)) %>% 
+  mutate(minulerocniky_prvno = ifelse(minulerocniky_prvno=="Ano","Poprvé","Opakovaný")) %>% 
+  group_by(turnus, CRorSK, minulerocniky_prvno) %>% 
+  summarise(pocet=n()) %>% 
+  mutate(podil=pocet/sum(pocet)) %>% 
+  filter(minulerocniky_prvno=="Opakovaný")
+
+ggplot(reci, aes(x=CRorSK, y=podil, colour=turnus, group=turnus)) +
+  geom_line(size=2) +
+  scale_y_continuous(limits=c(0,0.5), labels=percent) +
+  geom_point(size=4) +
+  geom_text(aes(label=paste("  ", turnus)), data=reci[reci$CRorSK=="ze Slovenska",],
+            hjust=0, fontface="bold", size=6) +
+  theme(legend.position="none", axis.text.x=element_text(size=15))
+
+reci <- df %>% 
+  select(pohlavi, turnus, vek, minulerocniky_prvno, CRorSK) %>%
+  filter(!is.na(pohlavi) & !is.na(vek) & !is.na(CRorSK) & !is.na(minulerocniky_prvno)) %>% 
+  mutate(minulerocniky_prvno = ifelse(minulerocniky_prvno=="Ano","Poprvé","Opakovaný")) %>% 
+  group_by(CRorSK, pohlavi, minulerocniky_prvno) %>% 
+  summarise(pocet=n()) %>% 
+  mutate(podil=pocet/sum(pocet)) %>% 
+  filter(minulerocniky_prvno=="Opakovaný")
+
+ggplot(reci, aes(x=CRorSK, y=podil, colour=pohlavi, group=pohlavi)) +
+  geom_line(size=2) +
+  scale_y_continuous(limits=c(0,0.5), labels=percent) +
+  geom_point(size=4) +
+  geom_text(aes(label=paste("  ", pohlavi)), data=reci[reci$CRorSK=="ze Slovenska",],
+            hjust=0, fontface="bold", size=6) +
+  theme_discover +
+  theme(legend.position="none", axis.text.x=element_text(size=15))
+
+```
+

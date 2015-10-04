@@ -1,0 +1,98 @@
+---
+title: 'Discover 2015: volný čas a nakademický program'
+output:
+  html_document:
+    css: custom.css
+    fig_height: 8
+    fig_width: 8
+    number_sections: no
+    toc: yes
+    toc_depth: 1
+---
+
+Discover 2015: volný čas a neakademický program (oba turnusy)
+==============
+----------
+
+*[Zpět na rozcestník zpětné vazby](index.html)*
+
+```{r PrepVolnycas, echo=F, include=F}
+
+library(knitr)
+library(Cairo)
+# set up graphing:
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
+# make relative references work - change this to project directory
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
+
+CairoFonts(
+  regular="Gill Sans MT:style=Regular",
+  bold="Gill Sans MT:style=Bold",
+  italic="Gill Sans MT:style=Italic",
+  bolditalic="Gill Sans MT:style=Bold Italic,BoldItalic",
+  symbol="Symbol"
+)
+
+setwd("~/github/discover2015/d15eval/")
+source("./d15eval_setup.R")
+setwd("~/github/discover2015/d15eval/")
+```
+
+
+# Večerní program
+
+*coming soon*
+
+```{r VecerniProgram, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=4, results="asis"}
+
+```
+
+# Volný čas
+
+
+Jak často účastníci zmiňovali jednotlivé aktivity?
+(Jde o hrubou analýzu textu.)
+
+## Co bylo nejlepší?
+
+```{r wsVolnyCasText, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=4}
+
+wordsofinterest <- list("Hututu"="[hH]utu",
+                        "Táborák"="([Tt][aá]bor[aá]k)|(ohe[ňn])|(oh[ňn])|(op[ée]k[aá])",
+                        "Talentmánie"="([Tt]alent)|([Ss]c[eé]n)|([Dd]ivad)",
+                        "Výlet"="([Vv][yý]let)|([Tt][uúů]r)",
+                        "Fun night"="([Ff]un)",
+                        "Metlobal"="([Mm]etlobal)|([Ff]amfrp[aá]l)|([Qq]uidditch)",
+                        "Hry"="([hH]ry)|([Hh]ier)|([Pp]alermo)|([Mm][aá]fi[ea])",
+                        "Běhání"="[Bb][eě]h",
+                        "Atmosféra, diskuse"="([aA]tmos)|([Dd]isku)|([Dd]ebat)",
+                        "Olympiáda/Pevnost"="([Oo]l[yi]mp)|([Pp]evnos)",
+                        "Večer za oponou/Jak se nezbláznit"="(opon)|(nezbl)",
+                        "Poezie"="[Pp]o[eé][zs]i")
+
+volnynejlepsicounts <- data.frame(heslo=character(), jul=integer(), aug=integer(), regex=character())
+for (i in 1:length(wordsofinterest)) {
+  # print(wordsofinterest[i])
+  # print(names(wordsofinterest[i]))
+  volnynejlepsicounts <- rbind(volnynejlepsicounts,
+                               data.frame(
+                                 heslo=names(wordsofinterest[i]),
+                                 jul=sum(grepl(wordsofinterest[i],df1$volnycasnejlepsi)),
+                                 aug=sum(grepl(wordsofinterest[i],df2$volnycasnejlepsi)),
+                                 regex=wordsofinterest[[i]]))
+}
+
+vcncounts <- melt(volnynejlepsicounts, id.vars=c("heslo","regex"))
+
+vcncounts$variable <- plyr::revalue(vcncounts$variable, c(jul="Júl", aug="August"))
+
+ggplot(vcncounts, aes(heslo, value, group=variable)) +
+  geom_bar(stat="identity", fill="magenta") +
+  facet_wrap(~variable, nrow = 1) +
+  coord_flip() +
+  theme_discover +
+  theme(panel.grid.major.y=element_blank(), panel.grid.major.x=element_line())
+
+```
+
+Perla: nejlepší na volném čase byla - aspoň pro jednoho účastníka - "dostatečná frekventivita".

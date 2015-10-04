@@ -1,19 +1,28 @@
 ---
-title: "Discover 2015: kurzy souhrnně"
+title: 'Discover 2015: dopad a celkové hodnocení'
 output:
   html_document:
     css: custom.css
     fig_height: 8
     fig_width: 8
+    number_sections: no
+    toc: yes
+    toc_depth: 1
 ---
+
+Discover 2015: dopad a celkové hodnocení
+==============
+----------
+
+*[Zpět na rozcestník zpětné vazby](index.html)*
+
 
 ```{r PrepDopad, echo=F, include=F}
 
 library(knitr)
 library(Cairo)
 # set up graphing:
-opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE, fig.width = 8,
-               fig.height = 8, dpi=100)
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
 # make relative references work - change this to project directory
 opts_knit$set(root.dir='~/github/discover2015/d15eval/')
 
@@ -28,20 +37,280 @@ CairoFonts(
 setwd("~/github/discover2015/d15eval/")
 source("./d15eval_setup.R")
 setwd("~/github/discover2015/d15eval/")
-
 ```
 
 # Ovlivnili jsme účastníky?
 
-## Obecně
+## Plány do budoucna
 
-```{r Ovlivnili, echo=F, dev="CairoPNG",dev.cap="",dpi=100}
-table(df1$ovlivnilaucastplany)
-table(df1$ovlivnilaucastplany, df1$pohlavi)
-table(df1$ovlivnilaVS)
+### Ovlivnila účast na Discover tvoje plány do budoucna?
+
+```{r OvlivniliPrep, echo=F, dev="CairoPNG",dev.cap="",dpi=100, include=F}
+prop.table(table(df$ovlivnilaucastplany, df$turnus),2) # liší se minimálně - Júl pozitivnější
+prop.table(table(df$ovlivnilaucastplany, df$pohlavi),2) # neliší se
+prop.table(table(df$ovlivnilaucastplany, df$CRorSK),2) # Češi o malinko pozitivnější
+prop.table(table(df$ovlivnilaucastplany, df$rocnik),2)
+prop.table(table(df$ovlivnilaucastplany, df$vek),2) # trochu efekt maturantů, jinak žádný trend
+prop.table(table(df1$ovlivnilaucastplany))
+
+ovl <- df %>% 
+  select(contains("ovlivnilaucastplany"), turnus, uid, pohlavi, vek, CRorSK) %>% 
+  melt(id.vars=c("uid","turnus","pohlavi","vek","CRorSK"))
+
+ovlVS <- df %>% 
+  select(contains("ovlivnilaVS"), turnus, uid, pohlavi, vek, CRorSK) %>% 
+  melt(id.vars=c("uid","turnus","pohlavi","vek","CRorSK"))
+
+ovl2 <- ovl %>% 
+  filter(!grepl("comment",variable) & !is.na(value)) %>% 
+  group_by(turnus, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable))
+
+ovl2$value <- as.factor(ovl2$value)
+# levels(ovl2$value)
+ovl2$value <- factor(ovl2$value, c("Určitě ne",levels(ovl2$value)[c(3,1,2,4)]))
+ovl2$turnus <- factor(ovl2$turnus,levels(ovl2$turnus)[c(2,1)])
+# levels(ovl2$value)
+ovl2 <- arrange(ovl2, value) 
+
+ovlivniliplotT <- ggplot(ovl2, aes(group=turnus, x=turnus, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(ovl2$value)), drop=FALSE) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  scale_y_continuous(labels=percent) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.x=element_text(size=12),
+                         axis.text.y=element_text(size=14))
+
+ovl2 <- ovl %>% 
+  filter(!grepl("comment",variable) & !is.na(value) & !is.na(pohlavi)) %>% 
+  group_by(pohlavi, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable))
+
+ovl2$value <- as.factor(ovl2$value)
+ovl2$value <- factor(ovl2$value, c("Určitě ne",levels(ovl2$value)[c(3,1,2,4)]))
+ovl2 <- arrange(ovl2, value) 
+
+ovlivniliplotG <- ggplot(ovl2, aes(group=pohlavi, x=pohlavi, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(ovl2$value)), drop=FALSE) +
+  scale_y_continuous(labels=percent) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.x=element_text(size=12),
+                         axis.text.y=element_text(size=14), legend.position="none")
+
+ovl2 <- ovl %>% 
+  filter(!grepl("comment",variable) & !is.na(value) & !is.na(CRorSK)) %>% 
+  group_by(CRorSK, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable))
+
+ovl2$value <- as.factor(ovl2$value)
+ovl2$value <- factor(ovl2$value, c("Určitě ne",levels(ovl2$value)[c(3,1,2,4)]))
+ovl2 <- arrange(ovl2, value) 
+
+ovlivniliplotC <- ggplot(ovl2, aes(group=CRorSK, x=CRorSK, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(ovl2$value)), drop=FALSE) +
+  scale_y_continuous(labels=percent) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.x=element_text(size=12),
+                         axis.text.y=element_text(size=14), legend.position="none")
+
+ovl2 <- ovl %>% 
+  filter(!grepl("comment",variable) & !is.na(value) & !is.na(vek)) %>% 
+  group_by(vek, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable))
+
+ovl2$value <- as.factor(ovl2$value)
+ovl2$value <- factor(ovl2$value, c("Určitě ne",levels(ovl2$value)[c(3,1,2,4)]))
+ovl2 <- arrange(ovl2, value) 
+
+ovlivniliplotV <- ggplot(ovl2, aes(group=vek, x=vek, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(ovl2$value)), drop=FALSE) +
+  scale_y_continuous(labels=percent) +
+  scale_x_continuous(breaks=c(14:20)) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.x=element_text(size=12),
+                         axis.text.y=element_text(size=14), legend.position="none")
+
+ovlVS2 <- ovlVS %>% 
+  filter(!grepl("comment",variable) & !is.na(value) & !is.na(turnus)) %>% 
+  group_by(turnus, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable))
+
+ovlVS2$value <- as.factor(ovlVS2$value)
+ovlVS2$value <- factor(ovlVS2$value, c("Určitě ne",levels(ovlVS2$value)[c(3,1,2,4)]))
+ovlVS2$turnus <- factor(ovlVS2$turnus,levels(ovlVS2$turnus)[c(2,1)])
+ovlVS2 <- arrange(ovlVS2, value) 
+
+ovlivniliplotVS <- ggplot(ovlVS2, aes(group=turnus, x=turnus, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(ovl2$value)), drop=FALSE) +
+  scale_y_continuous(labels=percent) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.x=element_text(size=12),
+                         axis.text.y=element_text(size=14))
+
 ```
 
-## VŠ
+Podle turnusu, pohlaví, země - žádné velké rozdíly
+
+```{r OvlivniliPlotT, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2, results="asis", fig.width=5, fig.align="right"}
+ovlivniliplotT # turnus
+```
+```{r OvlivniliPlotG, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=1, fig.width=4, results="asis", fig.align="right"}
+ovlivniliplotG # pohlavi
+```
+```{r OvlivniliPlotC, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=1, results="asis", fig.width=5, fig.align="right"}
+ovlivniliplotC # zeme
+```
+
+Podle věku - efekt maturantů
+
+```{r OvlivniliPlot2, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2.5, results="asis", fig.align="right", fig.width=5}
+ovlivniliplotV # vek
+```
+
+### Jak?
+
+```{r PlanyZmenilyPrep}
+
+zmenily <- df %>%
+  select(plany=ovlivnilaucastplany, plany_comment=ovlivnilaucastplany_comment) %>% 
+  filter(plany %in% c("Určitě ano","Spíše ano"),
+         !is.na(plany_comment), length(plany_comment)>3)
+  
+nezmenily <- df %>%
+  select(plany=ovlivnilaucastplany, plany_comment=ovlivnilaucastplany_comment) %>% 
+  filter(!(plany %in% c("Určitě ano","Spíše ano")),
+         !is.na(plany_comment), length(plany_comment)>3)
+
+```
+
+
+```{r PlanyZmenilyPositive, results='asis'}
+
+cat(paste0("* ", unique(zmenily$plany_comment)),sep="\n")
+
+```
+
+### Proč ne?
+
+```{r PlanyZmenilyNegative, results='asis'}
+
+cat(paste0("* ", unique(nezmenily$plany_comment)),sep="\n")
+
+```
+
+## Ovlivnila účast na Discover tvoje plány na VŠ?
+
+```{r OvlivniliVS, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2, results="asis", fig.align="right", fig.width=5}
+ovlivniliplotVS
+```
+
+# Srovnání s minulým Discoverem
+
+## Júl
+
+```{r SrovnaniJul, results='asis'}
+
+cat(paste0("* ", df[df$turnus=="Júl" & !is.na(df$rocnikysrovnani)  & str_length(df$rocnikysrovnani)>3,]$rocnikysrovnani) ,sep="\n")
+
+```
+
+## August
+
+```{r SrovnaniAugust, results='asis'}
+
+cat(paste0("* ", df[df$turnus=="August" & !is.na(df$rocnikysrovnani) & str_length(df$rocnikysrovnani)>3,]$rocnikysrovnani),sep="\n")
+
+```
+
+# Proč to děláme?
+
+## Júl
+
+```{r ProcJul, eval=T, echo=F, include=T, results='asis'}
+
+cat(paste0("* ",
+           df[df$turnus=="Júl" & !is.na(df$proctodelame) & str_length(df$proctodelame)>3,]$proctodelame),
+    sep="\n")
+
+```
+
+## August
+
+```{r ProcAug, eval=T, echo=F, include=T, results='asis'}
+
+cat(paste0("* ",
+           df[df$turnus=="August" & !is.na(df$proctodelame) & str_length(df$proctodelame)>3,]$proctodelame),
+    sep="\n")
+
+```
 
 # Co by vzkázali budoucím účastníkům?
 
+Ptali jsme se jen na júlovém turnusu.
+
+```{r VzkazJul, results='asis'}
+
+cat(paste0("* ", df[df$turnus=="Júl" & !is.na(df$vzkaz)  & str_length(df$vzkaz)>3,]$vzkaz),sep="\n")
+
+```
+
+# Co se jinam nevešlo
+
+## Júl
+
+```{r OstatniJul, results='asis'}
+
+cat(paste0("* ", df[df$turnus=="Júl" & !is.na(df$coseneveslo) & str_length(df$coseneveslo)>3,]$coseneveslo),sep="\n")
+
+```
+
+## August
+
+```{r OstatniAug, results='asis'}
+
+cat(paste0("* ", df[df$turnus=="August" & !is.na(df$coseneveslo) & str_length(df$coseneveslo)>3,]$coseneveslo),sep="\n")
+
+```
+
+Odsud i z jiných otázek:
+
+- několik účastníků přečetlo a ocenilo brožuru lektorů, dost lidí ocenilo nástěnku s lektory
+- sem tam se objevil stesk, že se lektoři moc bavili mezi sebou a málo se studenty
+- ... a jeden student měl naopak obavu, že nemáme čas sami na sebe...
+- obecně chuť poznávat účastníky mimo kurz a tým (poptávka po volném čase není jen na reflexi, klid, sport nebo bavení se s kamaráty, ale i poznávání ostatních)
+- odpor vůči knižním cenám
+- jeden silný principelní protest proti ztvárnění Lucky Černé :-)

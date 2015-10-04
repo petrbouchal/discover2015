@@ -156,9 +156,10 @@ theme_discover_multi <- theme(panel.grid.minor=element_line(color="grey96", size
 
 theme_discover <- theme(panel.grid.minor=element_line(color="grey96", size=.2),
                         panel.grid.major=element_line(color="grey96", size=.3),
+                        axis.text.x = element_text(size=11, color="grey40"),
+                        axis.text.y = element_text(size=11, color="grey40"),
                         strip.text = element_text(size=12, color="grey20"),
                         panel.background = element_rect(fill="white"),
-                        axis.text.x = element_text(size=11),
                         strip.background=element_rect(fill="white"),
                         legend.key.width=unit(.3,"cm"))
 

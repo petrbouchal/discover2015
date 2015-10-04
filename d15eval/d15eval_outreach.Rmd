@@ -1,0 +1,24 @@
+---
+title: 'Discover 2015: demografie, outreach, access, recruitment'
+output:
+  html_document:
+    css: custom.css
+    fig_height: 8
+    fig_width: 8
+    number_sections: no
+    toc: yes
+    toc_depth: 1
+---
+
+Discover 2015: outreach, access, recruitment (oba turnusy)
+==============
+----------
+
+*[Zpět na rozcestník zpětné vazby](index.html)*
+
+
+# Access: peníze
+
+# Marketing
+
+# Zájem pomáhat

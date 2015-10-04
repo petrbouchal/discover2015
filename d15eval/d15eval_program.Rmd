@@ -1,5 +1,5 @@
 ---
-title: 'Discover 2015 júl: workshopy a program'
+title: 'Discover 2015: rozložení dne, organizace, komunikace'
 output:
   html_document:
     css: custom.css
@@ -9,15 +9,15 @@ output:
     toc: yes
     toc_depth: 1
 ---
-  
-  Discover 2015 júl: program a organizace
+
+Discover 2015: rozložení dne, organizace, komunikace
 ==============
 ----------
-  
+
 *[Zpět na rozcestník zpětné vazby](index.html)*
-  
-  
-```{r Prep, echo=F, include=F}
+
+
+```{r PrepOrganizace, echo=F, include=F}
 
 library(knitr)
 library(Cairo)
@@ -37,18 +37,123 @@ CairoFonts(
 setwd("~/github/discover2015/d15eval/")
 source("./d15eval_setup.R")
 setwd("~/github/discover2015/d15eval/")
+```
+
+# Měl by se měnit program?
+
+## Jak by se měla změnit rovnováha mezi volným časem a výukou?
+
+```{r VolnyCasVsVyuka, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2.5, warning=F, include=F, message=F}
+# table(df$volnycasvsvyuka, df$turnus)
+
+programmenitplot <- ggplot(df[!is.na(df$volnycasvsvyuka),], aes(volnycasvsvyuka, ..count..,
+                                            group=turnus, fill=turnus)) +
+  # geom_bar() +
+  facet_wrap(~turnus) +
+  stat_bin(geom="ribbon",ymin=0) +
+  stat_bin(geom="point") +
+  scale_fill_manual(values=c("orange","gold")) +
+  theme_discover +
+  coord_flip() + theme(legend.position="none", axis.text=element_text(size=14),
+                       panel.grid.major.x=element_line(), panel.grid.major.y=element_blank())
+```
+
+```{r ProgramMenitPlot, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2.5, warning=F, include=T, message=F, results='hide'}
+suppressWarnings(print(programmenitplot))
+```
+
+
+## Jakou změnu rozložení aktivit bys nejvíce uvítal(a)?
+
+```{r JakZmenitRozvrh, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2.5}
+# table(df$casZmenit, df$turnus) 
+ggplot(df[!is.na(df$casZmenit),], aes(x=reorder(casZmenit,casZmenit,
+                     function(x) length(x)))) + coord_flip() +
+  geom_bar(fill="gold") +
+  theme_discover +
+  theme(axis.text.y=element_text(size=14), panel.grid.major.x=element_line(),
+        panel.grid.major.y=element_blank())
+
+# note to self: komentáře málokdo použil a pokud, tak jen opakoval. Je třeba změnit prompt.
 
 ```
 
-# Program obecně
+## Měl by se měnit program letní akademie
 
-```{r Program, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2}
+...například upravit denní rozvrh nebo vypustit některé večerní aktivity?
 
+```{r JakMenitProgram, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=5}
 
+# Vyžaduje nakodovat v excelu
+
+# write.csv(df %>% filter(!is.na(menitprogram)) %>% select(turnus,minulerocniky_prvno,menitprogram),
+          # row.names = F, file="menitprogram.csv")
+
+# magic happens here
+
+library(readxl)
+
+menit_coded <- read_excel("menitprogram.xlsx")
+
+menitsum <- menit_coded %>% 
+  filter(relevantni=="y") %>% 
+  mutate(turnus=relevel(factor(turnus),"Júl"),
+         minulerocniky_prvno=ifelse(is.na(minulerocniky_prvno) | minulerocniky_prvno=="NA",
+                                    "?",minulerocniky_prvno),
+         minulerocniky_prvno=factor(minulerocniky_prvno)) %>% 
+  group_by(turnus, minulerocniky_prvno, typ) %>% 
+  group_by(typ) %>% 
+  mutate(totalcount=n()) %>% 
+  group_by(turnus, minulerocniky_prvno, typ, totalcount) %>% 
+  summarise(pocet=n()) %>% 
+  arrange(desc(minulerocniky_prvno))
+
+menitsum$typ <- factor(menitsum$typ, levels = menitsum$typ[order(menitsum$totalcount)])
+menitsum$minulerocniky_prvno <- factor(menitsum$minulerocniky_prvno, levels(menitsum$minulerocniky_prvno)[c(3,2,1)])
 ```
 
-## Komunikace
+```{r JakMenitProgramPlot, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=5}
+ggplot(menitsum,
+       aes(x=typ, y=pocet, fill=minulerocniky_prvno, group=turnus, order=minulerocniky_prvno)) +
+  geom_bar(stat="identity") +
+  scale_fill_economist(guide = guide_legend(reverse=F)) +
+  facet_wrap(~turnus) +
+  coord_flip() +
+  theme_discover +
+  theme(axis.text.y=element_text(size=12), panel.grid.major.x=element_line(),
+        panel.grid.major.y=element_blank())
+```
 
-### Před Discover
+Celkově:
 
-### Brožurka
+* jen asi 70 ze 170 účastníků vyjádřilo nějakou touhu po změně
+* touha po čase na poznávání ostatních
+* ti, kterým nesedly týmové WS, se ozvali i tady
+* večer už byl hodně plný
+* skepse k talentmánii
+* zlepšit a obměnit úvodní/seznamovací/teambuildingové aktivity
+* obměnit večerní aktivity
+* konkurence lektorských a účastnických WS (ale řešení?!)
+* fun night měla úspěch - tj. volitelná volnější aktivita
+* tady i jinde se objevovaly dobré recenze na časté ohně
+
+Zajímavé nápady:
+
+* prostřídat kurzy a worskhopy
+* systematicky dělat pauzy v rámci kurzů/workshopů
+
+# Měla by se měnit velikost Discoveru?
+
+V zásadě ne: 10 % pro větší, 20 % pro menší, 80 % stejná.
+
+# Komunikace
+
+*coming soon*
+
+## Před Discover
+
+*coming soon*
+
+## Brožurka
+
+*coming soon*

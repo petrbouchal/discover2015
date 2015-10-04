@@ -1,0 +1,149 @@
+---
+title: 'Discover 2015: duševní pohoda'
+output:
+  html_document:
+    css: custom.css
+    fig_height: 8
+    fig_width: 8
+    number_sections: no
+    toc: yes
+    toc_depth: 1
+---
+
+Discover 2015: duševní pohoda
+==============
+----------
+
+*[Zpět na rozcestník zpětné vazby](index.html)*
+
+Viz též hodnocení Noci za oponou / Jak se nezbláznit ve [večerním programu](volnycas.html)
+
+```{r PrepVolnycas, echo=F, include=F}
+
+library(knitr)
+library(Cairo)
+# set up graphing:
+opts_chunk$set(echo=FALSE, dev='CairoPNG', warning=FALSE)
+# make relative references work - change this to project directory
+opts_knit$set(root.dir='~/github/discover2015/d15eval/')
+
+CairoFonts(
+  regular="Gill Sans MT:style=Regular",
+  bold="Gill Sans MT:style=Bold",
+  italic="Gill Sans MT:style=Italic",
+  bolditalic="Gill Sans MT:style=Bold Italic,BoldItalic",
+  symbol="Symbol"
+)
+
+setwd("~/github/discover2015/d15eval/")
+source("./d15eval_setup.R")
+setwd("~/github/discover2015/d15eval/")
+```
+
+
+# Role psychologa
+
+## Byla přítomnost psychologa užitečná?
+
+```{r RolePsychologa, echo=F, dev="CairoPNG",fig.cap="",dpi=200, fig.retina=2, fig.height=2, results="asis"}
+
+psy <- df %>% 
+  select(contains("rolepsychologa"), turnus, uid) %>% 
+  melt(id.vars=c("uid","turnus"))
+
+psy2 <- psy %>% 
+  filter(!grepl("comment",variable) & !is.na(value)) %>% 
+  group_by(turnus, variable, value) %>% 
+  summarise(count=n()) %>% 
+  ungroup() %>% 
+  mutate(variable=as.character(variable))
+
+psy2$value <- as.factor(psy2$value)
+# levels(psy2$value)
+psy2$value <- factor(psy2$value, c("Určitě ne",levels(psy2$value)[c(3,1,2,4)]))
+psy2$turnus <- factor(psy2$turnus,levels(psy2$turnus)[c(2,1)])
+# levels(psy2$value)
+psy2 <- arrange(psy2, value) 
+
+ggplot(psy2, aes(group=turnus, x=turnus, y=count, fill=value,
+                   order=-as.numeric(value))) +
+  geom_bar(stat="identity", position="fill", color="grey96") + 
+  coord_flip() +
+  scale_fill_brewer(palette = "RdBu", breaks = rev(levels(psy2$value)), drop=FALSE) +
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) +
+  scale_y_continuous(labels=percent) +
+  theme_discover + theme(panel.grid.major.y=element_blank(),
+                         panel.grid.major.x=element_line(color="white"),
+                         axis.text.x=element_text(size=12),
+                         axis.text.y=element_text(size=14))
+```
+
+
+```{r PsychoKomentPrep, echo=F, include=F}
+psycho_positive <- df %>%
+  select(psy=rolepsychologa, psy_comment=rolepsychologa_comment, turnus) %>% 
+  filter(psy %in% c("Určitě ano","Spíše ano"),
+         !is.na(psy_comment), length(psy_comment)>3)
+  
+psycho_negative <- df %>%
+  select(psy=rolepsychologa, psy_comment=rolepsychologa_comment, turnus) %>% 
+  filter(!(psy %in% c("Určitě ano","Spíše ano")),
+         !is.na(psy_comment), length(psy_comment)>3)
+```
+
+## Pokud ano, proč? Pokud ne, proč ne?
+
+Shrnutí:
+
+* účastníci (alespoň ti, kteří nám k tomuto něco napsali) zjevně chápali náš záměr, potřebnost podpory v oblasti duševní pohody
+* negativní a neutrální reakce v hodnocení výše vychází téměř čistě z toho, že Ivu/Elišku nekontaktovali
+* drobné náznaky situace "neměl/a jsem odvahu se ozvat"
+* pozitivní ohlasy z druhé ruky (viděl/věděl/a jsem, že ostatní využili)
+* pozitivní vliv pouhé přítomnosti ("je fajn tady někoho takového mít")
+* (až nečekaná) absence jakýchkoli nechápavých reakcí ("k čemu, nejsme magoři" atd.)
+
+Kromě toho účastníci na různých místech spontánně zmiňovali večery Noc za oponou / Jak se nezbláznit jako jednu z nejlepších inovací; neobjevila se snad jediná negativní zmínka.
+
+### Júl
+
+#### Pozitivní
+
+```{r PsychoPositiveJul, results='asis'}
+
+cat(paste0("* ", unique(psycho_positive$psy_comment[psy$turnus=="Júl"])),sep="\n")
+
+```
+
+#### Neutrální a negativní
+
+```{r PsychoNegativeJul, results='asis'}
+
+cat(paste0("* ", psycho_negative[psycho_negative$turnus=="Júl",]$psy_comment),sep="\n")
+
+```
+
+### August
+
+#### Pozitivní
+
+```{r PsychoPositiveAug, results='asis'}
+
+cat(paste0("* ", unique(psycho_positive$psy_comment[psy$turnus=="August"])),sep="\n")
+
+```
+
+#### Neutrální a negativní
+
+```{r PsychoNegativeAug, results='asis'}
+
+cat(paste0("* ", psycho_negative[psycho_negative$turnus=="August",]$psy_comment),sep="\n")
+
+```
+
+## Večer za oponou (zvlášť jsme se ptali jen na augustovém turnuse)
+
+```{r ZaOponou, results='asis'}
+
+cat(paste0("* ", unique(df$zaoponou[!is.na(df$zaoponou)])),sep="\n")
+
+```

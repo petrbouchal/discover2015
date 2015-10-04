@@ -5,7 +5,6 @@ output:
     css: custom.css
     fig_height: 8
     fig_width: 8
-    number_sections: no
     toc: yes
     toc_depth: 1
 ---
@@ -86,6 +85,40 @@ chartkurzy <- function (turnus="Júl", theme, columns=4) { # has to be either "J
     theme_discover_multi
 }
 ```
+
+```{r}
+
+kurzy4_tot <- kurzy3 %>% 
+  group_by(variable, kurzslot, turnus) %>% 
+  summarise(value = mean(value, na.rm = T))
+
+kurzy5_tot <- kurzy3 %>% 
+  group_by(variable, turnus) %>% 
+  summarise(value = mean(value, na.rm = T))
+
+kurzy5_tot$kurzslot <- "oba"
+kurzyplot_tot <- rbind(kurzy4_tot, kurzy5_tot)
+
+kurzyplot_tot <- kurzyplot_tot %>% 
+  group_by(variable, turnus) %>% 
+  mutate(pocetslotu = n()-1)
+
+chartkurzy_tot <- ggplot(kurzyplot_tot,
+         aes(x=variable, y=value, group=kurzslot, colour=kurzslot)) +
+    geom_line(size=1) +
+    geom_point(size=3, pch=19) +
+    facet_wrap(~ turnus, ncol=2) +
+    scale_y_continuous(limits=c(1,2)) +
+    scale_colour_manual(values=c("lightgoldenrod1","aquamarine3","black")) +
+    geom_text(aes(label=formatC(value, digits=2, format="f"),
+                  y=value+.1),
+              size=2.5, colour="grey40",fontface="bold",
+              data=kurzyplot_tot[kurzyplot_tot$kurzslot=="oba",]) +
+    theme_discover_multi + theme(axis.text=element_text(size = 13),
+                                 strip.text=element_text(size=14))
+
+```
+
 
 **Júlový turnus**
 
@@ -530,3 +563,4 @@ modelplot <- sjp.lm(model, sort.est = F)
 # modelplotA <- sjp.lm(modelA, sort.est = F)
 
 ```
+
